@@ -72,11 +72,13 @@ class Server:
     def add_client(self, client):
         with self.obtain_lock():
             self.clients.append(client)
+            print('* %s:%s connected' % client.addr)
 
     def remove_client(self, client):
         with self.obtain_lock():
             if client in self.clients:
                 self.clients.remove(client)
+                print('* %s:%s disconnected' % client.addr)
 
     def terminate(self):
         for c in self.clients:
@@ -98,29 +100,35 @@ class ClientHandler(threading.Thread):
     def __init__(self, server, client_socket, remote_address):
         super(ClientHandler, self).__init__()
         self.server, self.socket, self.addr = server, client_socket, remote_address
-        self.open = False
+        self.socket.setblocking(0)
+        self.disconnect_flag = False
 
     def run(self):
-        self.open = True
         self.server.add_client(self)
-        print('* %s:%s connected' % self.addr)
-        while True:
-            self.socket.sendall(str(time.clock()))
-            data = self.socket.recv(1024)
-            if not data:
+        while not self.disconnect_flag:
+            data = None
+            try:
+                data = self.socket.recv(1024)
+            except socket.error as e:
+                if e.errno == 9:
+                    # Client closed
+                    break
+                elif e.errno == 35:
+                    # No data
+                    time.sleep(0.01)
+                else:
+                    raise
+            if data is None:
+                time.sleep(0.01)
+                continue
+            if data == '':
                 break
             print('%s:%s: %s' % (self.addr[0], self.addr[1], data))
-        self.close()
+        self.socket.close()
+        self.server.remove_client(self)
 
     def close(self):
-        if self.open:
-            try:
-                self.socket.close()
-            except Exception as e:
-                print('%s' % e)
-            self.server.remove_client(self)
-            print('* %s:%s disconnected.' % self.addr)
-            self.open = False
+        self.disconnect_flag = True
 
 def main_server(server):
     print('Starting server on %s:%s...' % server.addr)

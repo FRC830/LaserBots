@@ -34,13 +34,8 @@ if not connected:
 i = 0
 while True:
     try:
-        data = sock.recv(1024)
-        if not data:
-            break
-        print(data)
-        #line = raw_input('> ')
-        sock.send(str(i))
-        i = i + 1
+        line = raw_input('> ')
+        sock.send(line)
     except KeyboardInterrupt:
         print('')
         break
