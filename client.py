@@ -10,8 +10,8 @@ SERVER_IP   = raw_input('Remote IP: ')
 PORT_NUMBER = 50007
 SIZE = 1024
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect((SERVER_IP,PORT_NUMBER))
-sock.sendall('Hello, world')
+#sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#sock.connect((SERVER_IP,PORT_NUMBER))
+#sock.sendall('Hello, world')
 
-sock.close()
+#sock.close()
