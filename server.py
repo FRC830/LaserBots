@@ -10,16 +10,13 @@ import pickle
 import zlib
 import pygame as pg
 
+#these will be CarController objects
+car_con1, car_con2 = None, None
+
 from contextlib import contextmanager
 
 HOST = ''
 PORTS = (50001, 50010)
-
-def encode_message(data):
-    return zlib.compress(pickle.dumps(data, 2))
-
-def decode_message(data):
-    return pickle.loads(zlib.decompress(data))
 
 class Server:
     """ Basic socket server """
@@ -87,10 +84,21 @@ class ClientHandler(threading.Thread):
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
         self.disconnect_flag = False
+        if not car_con1:
+            self.car_con = car_con1 = CarController(1)
+        elif not car_con2:
+            self.car_con = car_con1 = CarController(2)
+        else:
+            #should find a more graceful way to handle this
+            #although it will probably never happen anyways
+            print('More than 2 cars not supported')
+            self.car_con = None
 
     def run(self):
         self.server.add_client(self)
         while not self.disconnect_flag:
+            #send control information to car
+            self.socket.sendall(self.car_con.data_to_send())
             data = None
             try:
                 data = self.socket.recv(1024)
@@ -108,8 +116,9 @@ class ClientHandler(threading.Thread):
                 continue
             if data == '':
                 break
-            data = decode_message(data)
             self.server._trigger_callbacks('message', self, data)
+            #let controller handle received information
+            self.car_con.accept_data(data)
         self.socket.close()
         self.server.remove_client(self)
 
@@ -130,7 +139,7 @@ def main_server(server):
 
 def main():
     pg.init()
-
+    
     server = None
     for port in range(PORTS[0], PORTS[1] + 1):
         print('- Trying to bind to port %i...' % port)
