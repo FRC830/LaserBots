@@ -14,4 +14,4 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((SERVER_IP,PORT_NUMBER))
 sock.sendall('Hello, world')
 
-socket.close()
+sock.close()
