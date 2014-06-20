@@ -12,15 +12,26 @@ except ImportError:
     pass
 
 SERVER_IP = sys.argv[1] if len(sys.argv) > 1 else raw_input('Remote IP: ')
-PORT_NUMBER = 50007
+PORTS = (50001, 50010)
 SIZE = 1024
 
-try:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-except socket.error as e:
-    print('Failed to connect to server (%s)' % SERVER_IP)
+sock = None
+connected = False
+for port in range(PORTS[0], PORTS[1] + 1):
+    try:
+        print('- Trying %s:%i' % (SERVER_IP, port))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((SERVER_IP, port))
+        print('Connected successfully.')
+        connected = True
+        break
+    except socket.error as e:
+        print('- Connection failed: %s' % e)
+
+if not connected:
+    print('Fatal: Could not find server.')
     sys.exit()
-sock.connect((SERVER_IP,PORT_NUMBER))
+
 while True:
     try:
         line = raw_input('> ')

@@ -6,11 +6,12 @@ import threading
 import time
 
 HOST = ''
-PORT = 50007
+PORTS = (50001, 50010)
 
 class Server:
     """ Basic socket server """
     def __init__(self, host, port):
+        self.addr = (host, port)
         self.lock = threading.Lock()
         self.clients = []
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -71,18 +72,15 @@ class ClientHandler(threading.Thread):
     def close(self):
         if self.open:
             try:
-                #self.socket.shutdown(socket.SHUT_RD)
                 self.socket.close()
             except Exception as e:
-                import traceback
-                traceback.print_exc()
                 print('%s' % e)
             self.server.remove_client(self)
             print '* %s:%s disconnected.' % self.addr
             self.open = False
 
-def main(server):
-    print('Starting server on %s:%s...' % (HOST, PORT))
+def main_server(server):
+    print('Starting server on %s:%s...' % server.addr)
     try:
         server.serve_forever()
     except Exception as e:
@@ -93,14 +91,26 @@ def main(server):
         server.terminate()
         return True, None
 
-if __name__ == '__main__':
+def main():
+    server = None
+    for port in range(PORTS[0], PORTS[1] + 1):
+        print('- Trying to bind to port %i...' % port)
+        try:
+            server = Server(HOST, port)
+            break
+        except socket.error as e:
+            if e.errno == 48:
+                print('- Port %i unavailable' % port)
+            else:
+                print('Fatal: Failed to initialize server: %s' % e)
+                return
+    if not server:
+        print('Fatal: Could not find any open ports between %i and %i' % PORTS)
+        return
     try:
-        server = Server(HOST, PORT)
-    except socket.error as e:
-        print('Failed to initialize server: %s' % e)
-        sys.exit(1)
-    try:
-        main(server)
-    except (Exception, KeyboardInterrupt, SystemExit) as e:
-        print(e)
+        main_server(server)
+    finally:
         server.socket.close()
+
+if __name__ == '__main__':
+    main()
