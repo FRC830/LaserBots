@@ -6,6 +6,8 @@ import sys
 import time
 import socket
 
+import server
+
 try:
     import readline
 except ImportError:
@@ -35,7 +37,8 @@ i = 0
 while True:
     try:
         line = raw_input('> ')
-        sock.send(line)
+        i += 1
+        sock.send(server.encode_message((i, line)))
     except KeyboardInterrupt:
         print('')
         break

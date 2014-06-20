@@ -15,6 +15,12 @@ from contextlib import contextmanager
 HOST = ''
 PORTS = (50001, 50010)
 
+def encode_message(data):
+    return zlib.compress(pickle.dumps(data, 2))
+
+def decode_message(data):
+    return pickle.loads(zlib.decompress(data))
+
 class Server:
     """ Basic socket server """
     def __init__(self, host, port):
@@ -102,6 +108,7 @@ class ClientHandler(threading.Thread):
                 continue
             if data == '':
                 break
+            data = decode_message(data)
             self.server._trigger_callbacks('message', self, data)
         self.socket.close()
         self.server.remove_client(self)
@@ -123,7 +130,7 @@ def main_server(server):
 
 def main():
     pg.init()
-    
+
     server = None
     for port in range(PORTS[0], PORTS[1] + 1):
         print('- Trying to bind to port %i...' % port)
