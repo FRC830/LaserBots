@@ -92,9 +92,13 @@ class ClientHandler(threading.Thread):
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
         self.disconnect_flag = False
+        #the car controller associated with this client
+        self.car_con = CarController()
 
     def run(self):
         self.server.add_client(self)
+        #this is the main loop that is run repeatedly
+        #one of these is running concurrently for each car
         while not self.disconnect_flag:
             data = None
             try:
@@ -115,6 +119,8 @@ class ClientHandler(threading.Thread):
                 break
             data = decode_message(data)
             self.server._trigger_callbacks('message', self, data)
+            #give data from car to the car controller
+            car_con.accept_data(data)
         self.socket.close()
         self.server.remove_client(self)
 
@@ -134,8 +140,6 @@ def main_server(server):
         return True, None
 
 def main():
-    pg.init()
-
     server = None
     for port in range(PORTS[0], PORTS[1] + 1):
         print('- Trying to bind to port %i...' % port)

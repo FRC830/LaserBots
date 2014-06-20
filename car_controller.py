@@ -10,14 +10,17 @@
 import pygame as pg
 
 class CarController:
-    #id is which car this is: 1 or 2
-    #higher numbers are possible, we're just only planning to make 2 cars
-    def __init__(self, id):
-        self.id = id
-        if pg.joystick.get_count() >= id:
-            self.joy = pg.joystick.Joystick(id-1)
+    #static variable to keep track of which car we're on
+    #so each one can be assigned a separate controller
+    n_cars = 0
+    
+    def __init__(self):
+        joy_id = n_cars
+        n_cars += 1
+        if pg.joystick.get_count() > joy_id:
+            self.joy = pg.joystick.Joystick(joy_id)
         else:
-            print('Joystick %i not detected' % id)
+            print('Joystick %i not detected' % joy_id + 1)
             self.joy = None
 
         
