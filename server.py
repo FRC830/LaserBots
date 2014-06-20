@@ -15,9 +15,6 @@ from contextlib import contextmanager
 HOST = ''
 PORTS = (50001, 50010)
 
-#these will be CarController objects
-car1, car2 = None, None
-
 class Server:
     """ Basic socket server """
     def __init__(self, host, port):
@@ -84,23 +81,12 @@ class ClientHandler(threading.Thread):
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
         self.disconnect_flag = False
-        if not car1:
-            car1 = CarController(1)
-            self.car = car1
-        elif not car2:
-            car2 = CarController(2)
-            self.car = car2
-        else:
-            print('No more than two cars allowed')
-            self.car = None
 
     def run(self):
         self.server.add_client(self)
         while not self.disconnect_flag:
             data = None
             try:
-                to_send = self.car.data_to_send()
-                self.socket.sendall(to_send)
                 data = self.socket.recv(1024)
             except socket.error as e:
                 if e.errno == 9:
@@ -117,8 +103,6 @@ class ClientHandler(threading.Thread):
             if data == '':
                 break
             self.server._trigger_callbacks('message', self, data)
-            self.car.accept_data(data)
-            
         self.socket.close()
         self.server.remove_client(self)
 
