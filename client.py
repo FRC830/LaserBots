@@ -10,7 +10,11 @@ SERVER_IP   = sys.argv[1] if len(sys.argv) > 1 else raw_input('Remote IP: ')
 PORT_NUMBER = 50007
 SIZE = 1024
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except socket.error as e:
+    print('Failed to connect to server (%s)' % SERVER_IP)
+    sys.exit()
 sock.connect((SERVER_IP,PORT_NUMBER))
 sock.sendall('Hello, world')
 
