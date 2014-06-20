@@ -31,11 +31,16 @@ for port in range(PORTS[0], PORTS[1] + 1):
 if not connected:
     print('Fatal: Could not find server.')
     sys.exit()
-
+i = 0
 while True:
     try:
-        line = raw_input('> ')
-        sock.sendall(line)
+        data = sock.recv(1024)
+        if not data:
+            break
+        print(data)
+        #line = raw_input('> ')
+        sock.send(str(i))
+        i = i + 1
     except KeyboardInterrupt:
         print('')
         break
