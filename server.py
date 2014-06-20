@@ -6,6 +6,38 @@ import socket
 import sys
 import threading
 import time
+import pygame as pg
+
+#these will be set later
+joy_count = 0
+joys = (None, None)
+
+#the format for the return value of the get_input function
+input_format = "%f,%f;" #speed, turn
+
+#controller is 1 or 2 for the first or second
+#right now returns "speed" and "turn" values
+#return value has to be processed as a float for the convenience of the server
+#use the input_format variable
+#the main loop calls this every cycle
+#this function will also do all the processing we want to do with control input
+#eg limiting acceleration and so on
+def get_input(controller):
+    #if there aren't enough controllers, first re-check for controllers
+    #if that doesn't work return whatever means "stop and do nothing"
+    if  controller > joy_count:
+        joy_count = pg.joystick.get_count()
+        if controller > joy_count:
+            print('Input missing for car %i' % controller)
+        else:
+            joys[controller-1] = pg.joystick.Joystick(controller-1)
+            return (input_format % (0.0, 0.0))
+    joy = joys[controller-1]
+    #arbitrary controls for now
+    speed = joy.get_axis(1)
+    turn = joy.get_axis(4)
+    return (input_format % (speed, turn))
+
 
 from contextlib import contextmanager
 
@@ -73,6 +105,7 @@ class ClientHandler(threading.Thread):
         self.server.add_client(self)
         print('* %s:%s connected' % self.addr)
         while True:
+            self.socket.sendall(str(time.clock()))
             data = self.socket.recv(1024)
             if not data:
                 break
@@ -102,6 +135,19 @@ def main_server(server):
         return True, None
 
 def main():
+    #detect joysticks
+    #if we don't have enough, we'll keep looking for joysticks in the main cycle
+    pg.init()
+    joy_count = pg.joystick.get_count()
+    if joy_count == 0:
+        print('No joysticks detected')
+    elif joy_count == 1:
+        print('Only one joystick detected')
+        joys[0] = pg.joystick.Joystick(0)
+    else:
+        print('At least two joysticks detected')
+        joys = (pg.joystick.Joystick(0), pg.joystick.Joystick(1))
+        
     server = None
     for port in range(PORTS[0], PORTS[1] + 1):
         print('- Trying to bind to port %i...' % port)
