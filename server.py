@@ -13,6 +13,9 @@ from contextlib import contextmanager
 HOST = ''
 PORTS = (50001, 50010)
 
+#these will be CarController objects
+car1, car2 = None, None
+
 class Server:
     """ Basic socket server """
     def __init__(self, host, port):
@@ -71,12 +74,23 @@ class ClientHandler(threading.Thread):
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
         self.disconnect_flag = False
+        if not car1:
+            car1 = CarController(1)
+            self.car = car1
+        elif not car2:
+            car2 = CarController(2)
+            self.car = car2
+        else:
+            print('No more than two cars allowed')
+            self.car = None
 
     def run(self):
         self.server.add_client(self)
         while not self.disconnect_flag:
             data = None
             try:
+                to_send = self.car.data_to_send()
+                self.socket.sendall(to_send)
                 data = self.socket.recv(1024)
             except socket.error as e:
                 if e.errno == 9:
@@ -93,6 +107,8 @@ class ClientHandler(threading.Thread):
             if data == '':
                 break
             print('%s:%s: %s' % (self.addr[0], self.addr[1], data))
+            self.car.accept_data(data)
+            
         self.socket.close()
         self.server.remove_client(self)
 
@@ -112,19 +128,8 @@ def main_server(server):
         return True, None
 
 def main():
-    #detect joysticks
-    #if we don't have enough, we'll keep looking for joysticks in the main cycle
     pg.init()
-    joy_count = pg.joystick.get_count()
-    if joy_count == 0:
-        print('No joysticks detected')
-    elif joy_count == 1:
-        print('Only one joystick detected')
-        joys[0] = pg.joystick.Joystick(0)
-    else:
-        print('At least two joysticks detected')
-        joys = (pg.joystick.Joystick(0), pg.joystick.Joystick(1))
-        
+    
     server = None
     for port in range(PORTS[0], PORTS[1] + 1):
         print('- Trying to bind to port %i...' % port)
