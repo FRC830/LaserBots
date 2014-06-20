@@ -31,7 +31,7 @@ class CarController:
     #right now returns "speed" and "turn" values
     #use the input_format variable
     #the main loop calls this every cycle
-    def data_to_send():
+    def data_to_send(self):
         if self.joy:
             #arbitrary controls for now
             speed = joy.get_axis(1)
@@ -43,7 +43,7 @@ class CarController:
     #takes the string sent by the car
     #the main loop calls this every cycle
     #which will tell us whether it hit the other car, and possibly other things
-    def accept_data(data):
+    def accept_data(self, data):
         #just print the data for now, we'll do stuff with it later
         if data:
             print(data)

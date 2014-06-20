@@ -12,6 +12,8 @@ import pygame as pg
 
 from contextlib import contextmanager
 
+import car_controller
+
 HOST = ''
 PORTS = (50001, 50010)
 
@@ -93,7 +95,7 @@ class ClientHandler(threading.Thread):
         self.socket.setblocking(0)
         self.disconnect_flag = False
         #the car controller associated with this client
-        self.car_con = CarController()
+        self.car_con = car_controller.CarController()
 
     def run(self):
         self.server.add_client(self)
@@ -147,7 +149,8 @@ def main():
             server = Server(HOST, port)
             break
         except socket.error as e:
-            if e.errno == 48:
+            print('error number %i' % e.errno)
+            if e.errno == 10048:
                 print('- Port %i unavailable' % port)
             else:
                 print('Fatal: Failed to initialize server: %s' % e)

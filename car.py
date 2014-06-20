@@ -6,18 +6,17 @@
 #each instance of this class corresponds to a car
 
 class Car:
-
     #returns the string that should be sent to the server
     #tells whether the car hit another with the laser, and possibly other things
-    def data_to_send():
+    def data_to_send(self):
         return "hi"
 
     #takes the data sent by the server
     #which will be processed user input
     #this is the equivalent of our TeleopInit(), kind of
     #where we run all the motors and everything
-    def accept_data(data):
+    def accept_data(self, data):
         #print the data for now, later we'll do stuff with it
         if data:
-            print(data)
+            print(self, data)
 
