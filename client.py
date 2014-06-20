@@ -2,16 +2,19 @@
 
 #This is the program that runs on each car and takes input from the control laptop
 
-import pika
+import sys
+import time
+from socket import socket, AF_INET, SOCK_DGRAM
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.204'))
-channel = connection.channel()
-channel.queue_declare(queue='hello')
+SERVER_IP   = '127.0.0.1'
+PORT_NUMBER = 5000
+SIZE = 1024
+print ("Test client sending packets to IP {0}, via port {1}\n".format(SERVER_IP, PORT_NUMBER))
 
-def CBMethod(data):
-    print " [x] Sent {0}".format(data)
-    channel.basic_publish(exchange='',
-                          routing_key='hello',
-                          body=data)
+mySocket = socket( AF_INET, SOCK_DGRAM )
+mySocket.connect((SERVER_IP,PORT_NUMBER))
 
-connection.close()
+while True:
+        mySocket.sendto('cool')
+        time.sleep(0.5)
+sys.exit()
