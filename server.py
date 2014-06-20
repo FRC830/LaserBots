@@ -63,6 +63,7 @@ class ClientHandler(threading.Thread):
         self.server.lock.release()
         print('* %s:%s connected' % self.addr)
         while True:
+            self.socket.sendall(str(time.clock()))
             data = self.socket.recv(1024)
             if not data:
                 break
