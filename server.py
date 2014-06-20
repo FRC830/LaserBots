@@ -40,6 +40,11 @@ class Server:
         while True:
             ClientHandler(self, *self.socket.accept()).start()
 
+    def send_message(self, msg, clients):
+        msg = encode_message(msg)
+        for c in clients:
+            c.socket.send(msg)
+
     @contextmanager
     def obtain_lock(self):
         self.lock.acquire()
