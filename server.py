@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import socket
 import sys
 import threading
 import time
+
+from contextlib import contextmanager
 
 HOST = ''
 PORTS = (50001, 50010)
@@ -27,15 +31,23 @@ class Server:
         while True:
             ClientHandler(self, *self.socket.accept()).start()
 
-    def remove_client(self, client):
+    @contextmanager
+    def obtain_lock(self):
         self.lock.acquire()
-        if client in self.clients:
-            self.clients.remove(client)
+        yield
         self.lock.release()
+
+    def add_client(self, client):
+        with self.obtain_lock():
+            self.clients.append(client)
+
+    def remove_client(self, client):
+        with self.obtain_lock():
+            if client in self.clients:
+                self.clients.remove(client)
 
     def terminate(self):
         for c in self.clients:
-            c.socket.shutdown(socket.SHUT_RD)
             c.close()
         self.socket.close()
 
@@ -58,9 +70,7 @@ class ClientHandler(threading.Thread):
 
     def run(self):
         self.open = True
-        self.server.lock.acquire()
-        self.server.clients.append(self)
-        self.server.lock.release()
+        self.server.add_client(self)
         print('* %s:%s connected' % self.addr)
         while True:
             data = self.socket.recv(1024)
@@ -76,7 +86,7 @@ class ClientHandler(threading.Thread):
             except Exception as e:
                 print('%s' % e)
             self.server.remove_client(self)
-            print '* %s:%s disconnected.' % self.addr
+            print('* %s:%s disconnected.' % self.addr)
             self.open = False
 
 def main_server(server):
