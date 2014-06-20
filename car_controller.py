@@ -39,7 +39,7 @@ class CarController:
     #takes the string sent by the car
     #the main loop calls this every cycle
     #which will tell us whether it hit the other car, and possibly other things
-    def data_received(data):
+    def accept_data(data):
         #just print the data for now, we'll do stuff with it later
         if data:
             print(data)
