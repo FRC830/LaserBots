@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+#runs on the server side
 #this collects user input for each car and processes it to be sent to the pi
 #each instance of this class corresponds to a car
 #this will interact with the gui
@@ -21,7 +22,7 @@ class CarController:
 
         
     #the format for the return value of the get_input function
-    input_format = "%f,%f;" #speed, turn
+    output_format = "%f,%f;" #speed, turn
 
     #returns the string that the server should send to the car
     #right now returns "speed" and "turn" values
@@ -32,9 +33,9 @@ class CarController:
             #arbitrary controls for now
             speed = joy.get_axis(1)
             turn = joy.get_axis(4)
-            return (input_format % (speed, turn))
+            return (output_format % (speed, turn))
         else:
-            return (input_format % (0.0, 0.0))
+            return (output_format % (0.0, 0.0))
 
     #takes the string sent by the car
     #the main loop calls this every cycle
