@@ -13,6 +13,8 @@ try:
 except ImportError:
     pass
 
+car = Car()
+
 SERVER_IP = sys.argv[1] if len(sys.argv) > 1 else raw_input('Remote IP: ')
 PORTS = (50001, 50010)
 SIZE = 1024
@@ -33,12 +35,24 @@ for port in range(PORTS[0], PORTS[1] + 1):
 if not connected:
     print('Fatal: Could not find server.')
     sys.exit()
-i = 0
+
 while True:
     try:
-        line = raw_input('> ')
-        i += 1
-        sock.send(server.encode_message((i, line)))
+    data = None
+        try:
+          data = server.decode_message(sock.recv(1024))
+        except socket.error as e:
+            if e.errno == 35:
+                # No data
+                time.sleep(0.01)
+            else:
+                raise
+        if data is None:
+            time.sleep(0.01)
+            continue
+        car.accept_data(data)
+        to_send = car.data_to_send()
+        sock.send(server.encode_message(to_send))
     except KeyboardInterrupt:
         print('')
         break
