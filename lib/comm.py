@@ -14,6 +14,7 @@ import pygame as pg
 
 from contextlib import contextmanager
 
+TIMEOUT = 0.1
 SOCKET_CLOSED = (9, 32, 54)
 SOCKET_NO_DATA = (35, 10035)
 
@@ -22,9 +23,6 @@ def encode_message(data):
 
 def decode_message(data):
     return pickle.loads(zlib.decompress(data))
-
-def delay():
-    time.sleep(0.005)
 
 class Server:
     """ Basic socket server """
@@ -103,7 +101,7 @@ class ClientHandler(threading.Thread):
     def __init__(self, server, client_socket, remote_address):
         super(ClientHandler, self).__init__()
         self.server, self.socket, self.addr = server, client_socket, remote_address
-        self.socket.setblocking(0)
+        self.socket.settimeout(TIMEOUT)
         self.disconnect = False
         self.send_queue = []
         self.info = {}
@@ -120,17 +118,18 @@ class ClientHandler(threading.Thread):
                     self.socket.send(msg)
                 self.send_queue = []
                 data = self.socket.recv(1024)
+            except socket.timeout:
+                pass
             except socket.error as e:
                 if e.errno in SOCKET_CLOSED:
                     # Client closed
                     break
                 elif e.errno in SOCKET_NO_DATA:
                     # No data
-                    delay()
+                    continue
                 else:
                     raise
             if data is None:
-                delay()
                 continue
             if data == '':
                 break
@@ -150,7 +149,7 @@ class Client:
     def __init__(self, addr):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(addr)
-        self.socket.setblocking(0)
+        self.socket.settimeout(TIMEOUT)
         self.addr = addr
         self.disconnect = False
         self.send_queue = []
@@ -166,17 +165,18 @@ class Client:
                     self.socket.send(msg)
                 self.send_queue = []
                 data = self.socket.recv(1024)
+            except socket.timeout:
+                pass
             except socket.error as e:
                 if e.errno in SOCKET_CLOSED:
                     # Client closed
                     break
                 elif e.errno in SOCKET_NO_DATA:
                     # No data
-                    delay()
+                    continue
                 else:
                     raise
             if data is None:
-                delay()
                 continue
             if data == '':
                 break

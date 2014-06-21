@@ -41,7 +41,6 @@ class CarController:
     # which will tell us whether it hit the other car, and possibly other things
     def accept_data(self, data):
         if type(data) == dict:
-            print(self, data)
             if data.has_key('hit_car'):
                 for c in self.controllers:
                     if c is not self:
