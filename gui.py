@@ -45,12 +45,13 @@ class PowerMeter(pygame.sprite.Sprite):
     def update(self):
         #this is the power level
         pygame.draw.rect(self.bg, (0,0,255), pygame.Rect(self.x,self.y,self.power,self.height))
-        if pygame.key.get_pressed()[K_SPACE] and self.power == 100:
-            self.power=0
-            pygame.draw.rect(self.bg, (255,255,255), pygame.Rect(self.x,self.y,self.width,self.height))
         if self.power < 100:
             self.power += 1
-        
+    def fire(self):
+        """put the power to zero, later it will complete some firing action maybe"""
+        if self.power == 100:#only fire if recharged fully
+            self.power=0
+            pygame.draw.rect(self.bg, (255,255,255), pygame.Rect(self.x,self.y,self.width,self.height))
 
 def main():
     pygame.init()
@@ -68,6 +69,8 @@ def main():
 
     meter1 = PowerMeter(background, 10, 100)
     meter2 = PowerMeter(background, 510, 100)
+
+    updateables = (meter1, meter2)#list of things to update in the loop
     #allsprites = pygame.sprite.RenderPlain(())
 
     write("LaserBots!", background, 500, 25, (46,45,123), 50)
@@ -84,10 +87,13 @@ def main():
                 going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 going = False
-        meter1.update()
-        meter2.update()
+        for obj in updateables:
+            obj.update()
         #allsprites.update()
-
+        if pygame.key.get_pressed()[K_w]:
+            meter1.fire()
+        if pygame.key.get_pressed()[K_UP]:
+            meter2.fire()       
         #Draw Everything
         screen.blit(background, (0, 0))
         #allsprites.draw(screen)
