@@ -57,13 +57,13 @@ class Server:
     def add_client(self, client):
         with self.obtain_lock():
             self.clients.append(client)
-            self._trigger_callbacks('connect', client)
+        self._trigger_callbacks('connect', client)
 
     def remove_client(self, client):
         with self.obtain_lock():
             if client in self.clients:
                 self.clients.remove(client)
-                self._trigger_callbacks('disconnect', client)
+        self._trigger_callbacks('disconnect', client)
 
     def terminate(self):
         for c in self.clients:
@@ -88,11 +88,12 @@ class Server:
 
     def _trigger_callbacks(self, event, *data):
         """ Triggers all callbacks bound to event """
-        if event in self._callbacks:
-            for func in self._callbacks[event]:
-                func(*data)
-        else:
-            raise ValueError('Unknown event: %r' % event)
+        with self.obtain_lock():
+            if event in self._callbacks:
+                for func in self._callbacks[event]:
+                    func(*data)
+            else:
+                raise ValueError('Unknown event: %r' % event)
 
 class ClientHandler(threading.Thread):
     """ Server-side client """
@@ -136,8 +137,7 @@ class ClientHandler(threading.Thread):
         self.server.remove_client(self)
 
     def send(self, data):
-        with self.server.obtain_lock():
-            self.send_queue.append(data)
+        self.send_queue.append(data)
 
     def close(self):
         self.disconnect = True
