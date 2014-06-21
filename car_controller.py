@@ -8,6 +8,7 @@
 #then take input from the car and give it as input to data_received()
 
 import pygame as pg
+pg.joystick.init()
 
 class CarController:
     #static variable to keep track of which car we're on
@@ -15,12 +16,12 @@ class CarController:
     n_cars = 0
     
     def __init__(self):
-        joy_id = n_cars
-        n_cars += 1
+        joy_id = CarController.n_cars
+        CarController.n_cars += 1
         if pg.joystick.get_count() > joy_id:
             self.joy = pg.joystick.Joystick(joy_id)
         else:
-            print('Joystick %i not detected' % joy_id + 1)
+            print('Joystick %i not detected' % (joy_id + 1))
             self.joy = None
 
         
