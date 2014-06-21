@@ -14,7 +14,7 @@ class CarController:
     #static variable to keep track of which car we're on
     #so each one can be assigned a separate controller
     n_cars = 0
-    
+
     def __init__(self):
         joy_id = CarController.n_cars
         CarController.n_cars += 1
@@ -24,7 +24,7 @@ class CarController:
             print('Joystick %i not detected' % (joy_id + 1))
             self.joy = None
 
-        
+
     #returns the data that the server should send to the car
     #right now returns a tuple of two floats (speed, turn)
     #use the input_format variable

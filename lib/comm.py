@@ -2,6 +2,8 @@
 
 from __future__ import print_function
 
+__metaclass__ = type  # Use new-style classes
+
 import socket
 import sys
 import threading
@@ -17,6 +19,9 @@ def encode_message(data):
 
 def decode_message(data):
     return pickle.loads(zlib.decompress(data))
+
+def delay():
+    time.sleep(0.005)
 
 class Server:
     """ Basic socket server """
@@ -89,18 +94,19 @@ class Server:
             raise ValueError('Unknown event: %r' % event)
 
 class ClientHandler(threading.Thread):
+    """ Server-side client """
     def __init__(self, server, client_socket, remote_address):
         super(ClientHandler, self).__init__()
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
-        self.disconnect_flag = False
+        self.disconnect = False
         self.send_queue = []
         self.info = {}
 
     def run(self):
         # this runs in a separate thread for each client
         self.server.add_client(self)
-        while not self.disconnect_flag:
+        while not self.disconnect:
             data = None
             try:
                 data = self.socket.recv(1024)
@@ -114,11 +120,11 @@ class ClientHandler(threading.Thread):
                     break
                 elif e.errno == 35:
                     # No data
-                    time.sleep(0.01)
+                    delay()
                 else:
                     raise
             if data is None:
-                time.sleep(0.01)
+                delay()
                 continue
             if data == '':
                 break
@@ -132,7 +138,54 @@ class ClientHandler(threading.Thread):
             self.send_queue.append(data)
 
     def close(self):
-        self.disconnect_flag = True
+        self.disconnect = True
+
+class Client:
+    """ Client-side client """
+    def __init__(self, addr):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect(addr)
+        self.socket.setblocking(0)
+        self.addr = addr
+        self.disconnect = False
+        self.send_queue = []
+        self.on_connect()
+
+    def listen_forever(self):
+        while not self.disconnect:
+            self.on_loop()
+            data = None
+            try:
+                for msg in self.send_queue:
+                    msg = encode_message(msg)
+                    self.socket.send(msg)
+                self.send_queue = []
+                data = self.socket.recv(1024)
+            except socket.error as e:
+                if e.errno == 9:
+                    # Client closed
+                    break
+                elif e.errno == 35:
+                    # No data
+                    delay()
+                else:
+                    raise
+            if data is None:
+                delay()
+                continue
+            if data == '':
+                break
+            data = decode_message(data)
+            self.message(data)
+        self.socket.close()
+        self.on_disconnect()
+
+    def on_connect(self): pass
+    def on_disconnect(self): pass
+    def on_message(self, data): pass
+
+    def send(self, data):
+        self.send_queue.append(data)
 
 class Dispatcher:
     def __init__(self):

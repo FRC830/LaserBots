@@ -20,7 +20,7 @@ class Dispatcher(comm.Dispatcher):
     def message(self, client, data):
         print('message from %s:%s: %s' % (client.addr[0], client.addr[1], data))
         client.info['controller'].accept_data(data)
-    
+
 def main_server(server):
     print('Starting server on %s:%s...' % server.addr)
     try:
