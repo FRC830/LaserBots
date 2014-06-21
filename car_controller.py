@@ -25,11 +25,8 @@ class CarController:
             self.joy = None
 
         
-    #the format for the return value of the get_input function
-    output_format = "%f,%f;" #speed, turn
-
-    #returns the string that the server should send to the car
-    #right now returns "speed" and "turn" values
+    #returns the data that the server should send to the car
+    #right now returns a tuple of two floats (speed, turn)
     #use the input_format variable
     #the main loop calls this every cycle
     def data_to_send(self):
@@ -37,9 +34,9 @@ class CarController:
             #arbitrary controls for now
             speed = joy.get_axis(1)
             turn = joy.get_axis(4)
-            return (output_format % (speed, turn))
+            return (speed, turn)
         else:
-            return (output_format % (0.0, 0.0))
+            return (0.0, 0.0)
 
     #takes the string sent by the car
     #the main loop calls this every cycle
