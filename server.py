@@ -14,13 +14,18 @@ class Dispatcher(comm.Dispatcher):
         print('client connected: %s:%s' % client.addr)
         client.info = {
             'controller': car_controller.CarController(
-                joy_id = len(self.clients)-1 #joysticks and things index from 0
+                joy_id = len(self.clients) - 1, # joysticks are 0-indexed
+                client = client,
+                dispatcher = self,
             )
         }
+        for c in self.clients:
+            c.info['controller'].controllers = [c2.info['controller']
+                                                for c2 in self.clients]
     def disconnect(self, client):
         print('client disconnected: %s:%s' % client.addr)
     def loop(self, client):
-        self.send_to(client, client.info['controller'].data_to_send())
+        client.info['controller'].loop()
     def message(self, client, data):
         client.info['controller'].accept_data(data)
 

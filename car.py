@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 
-#runs on the client side
-#this class takes the user input and actually controls the car
-#this is where all the motor and servo controlling stuff will go eventually
-#each instance of this class corresponds to a car
+# runs on the client side
+# this class takes the user input and actually controls the car
+# this is where all the motor and servo controlling stuff will go eventually
+# each instance of this class corresponds to a car
+
+import random
 
 class Car:
     #returns the data that should be sent to the server
     #tells whether the car hit another with the laser, and possibly other things
     def data_to_send(self):
-        return False
+        data = {}
+        if random.randint(1, 20) == 1:
+            data['hit_car'] = True
+        return data
 
     #takes the data sent by the server
     #which will be processed user input

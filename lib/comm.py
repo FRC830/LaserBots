@@ -198,6 +198,7 @@ class Dispatcher:
         self.server = None
 
     def Dispatcher_connect(self, client):
+        print('Dispatcher_connect')
         self.clients.append(client)
 
     def Dispatcher_disconnect(self, client):
