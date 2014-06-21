@@ -88,16 +88,13 @@ class Server:
         else:
             raise ValueError('Unknown event: %r' % event)
 
-CLIENT_ID = 1
 class ClientHandler(threading.Thread):
     def __init__(self, server, client_socket, remote_address):
-        global CLIENT_ID
         super(ClientHandler, self).__init__()
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
         self.disconnect_flag = False
-        self.ID = CLIENT_ID
-        CLIENT_ID += 1
+        self.info = {}
 
     def run(self):
         # this runs in a separate thread for each client

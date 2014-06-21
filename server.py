@@ -11,18 +11,19 @@ PORTS = (50001, 50010)
 
 class Dispatcher:
     def __init__(self):
-        self.clients = {}
+        self.clients = []
     def connect(self, client):
         print('client connected: %s:%s' % client.addr)
-        self.clients[client.ID] = {
+        client.info = {
             'controller': car_controller.CarController()
         }
+        self.clients.append(client)
     def disconnect(self, client):
         print('client disconnected: %s:%s' % client.addr)
-        del self.clients[client.ID]
+        self.clients.remove(client)
     def message(self, client, data):
         print('message from %s:%s: %s' % (client.addr[0], client.addr[1], data))
-        self.clients[client.ID]['controller'].accept_data(data)
+        client.info['controller'].accept_data(data)
     
 def main_server(server):
     print('Starting server on %s:%s...' % server.addr)
