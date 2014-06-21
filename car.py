@@ -6,7 +6,7 @@
 #each instance of this class corresponds to a car
 
 class Car:
-    #returns the string that should be sent to the server
+    #returns the data that should be sent to the server
     #tells whether the car hit another with the laser, and possibly other things
     def data_to_send(self):
         return "hi"
