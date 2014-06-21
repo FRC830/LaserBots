@@ -14,7 +14,7 @@ class Dispatcher(comm.Dispatcher):
         print('client connected: %s:%s' % client.addr)
         client.info = {
             'controller': car_controller.CarController(
-                joy_id = len(self.clients)
+                joy_id = len(self.clients)-1 #joysticks and things index from 0
             )
         }
     def disconnect(self, client):
