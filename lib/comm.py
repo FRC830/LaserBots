@@ -14,6 +14,9 @@ import pygame as pg
 
 from contextlib import contextmanager
 
+SOCKET_CLOSED = (9, 32, 54)
+SOCKET_NO_DATA = (35, 10035)
+
 def encode_message(data):
     return zlib.compress(pickle.dumps(data, 2))
 
@@ -118,10 +121,10 @@ class ClientHandler(threading.Thread):
                 self.send_queue = []
                 data = self.socket.recv(1024)
             except socket.error as e:
-                if e.errno in (9, 32):
+                if e.errno in SOCKET_CLOSED:
                     # Client closed
                     break
-                elif e.errno in (35, 10035):
+                elif e.errno in SOCKET_NO_DATA:
                     # No data
                     delay()
                 else:
@@ -164,10 +167,10 @@ class Client:
                 self.send_queue = []
                 data = self.socket.recv(1024)
             except socket.error as e:
-                if e.errno == 9:
+                if e.errno in SOCKET_CLOSED:
                     # Client closed
                     break
-                elif e.errno in (35, 10035):
+                elif e.errno in SOCKET_NO_DATA:
                     # No data
                     delay()
                 else:
