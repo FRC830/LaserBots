@@ -36,6 +36,7 @@ class Server:
             'connect': [],
             'disconnect': [],
             'message': [],
+            'loop': [],
         }
 
     def serve_forever(self):
@@ -107,15 +108,16 @@ class ClientHandler(threading.Thread):
         # this runs in a separate thread for each client
         self.server.add_client(self)
         while not self.disconnect:
+            self.server._trigger_callbacks('loop', self)
             data = None
             try:
-                data = self.socket.recv(1024)
                 for msg in self.send_queue:
                     msg = encode_message(msg)
                     self.socket.send(msg)
                 self.send_queue = []
+                data = self.socket.recv(1024)
             except socket.error as e:
-                if e.errno == 9:
+                if e.errno in (9, 32):
                     # Client closed
                     break
                 elif e.errno == 35:
@@ -176,7 +178,7 @@ class Client:
             if data == '':
                 break
             data = decode_message(data)
-            self.message(data)
+            self.on_message(data)
         self.socket.close()
         self.on_disconnect()
 
@@ -203,7 +205,7 @@ class Dispatcher:
         server.add_dispatcher(self)
         self.server = server
 
-    def send_to(self, msg, client):
+    def send_to(self, client, msg):
         client.send(msg)
 
     def send_all(self, msg):

@@ -27,7 +27,7 @@ class Client(comm.Client):
         print('Connected to %s:%s' % self.addr)
 
     def on_message(self, data):
-        print('recieved: %s' % data)
+        self.car.accept_data(data)
 
     def on_loop(self):
         self.send(self.car.data_to_send())

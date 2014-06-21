@@ -13,12 +13,15 @@ class Dispatcher(comm.Dispatcher):
     def connect(self, client):
         print('client connected: %s:%s' % client.addr)
         client.info = {
-            'controller': car_controller.CarController()
+            'controller': car_controller.CarController(
+                joy_id = len(self.clients)
+            )
         }
     def disconnect(self, client):
         print('client disconnected: %s:%s' % client.addr)
+    def loop(self, client):
+        self.send_to(client, client.info['controller'].data_to_send())
     def message(self, client, data):
-        print('message from %s:%s: %s' % (client.addr[0], client.addr[1], data))
         client.info['controller'].accept_data(data)
 
 def main_server(server):

@@ -9,7 +9,7 @@ class Car:
     #returns the data that should be sent to the server
     #tells whether the car hit another with the laser, and possibly other things
     def data_to_send(self):
-        return "hi"
+        return []
 
     #takes the data sent by the server
     #which will be processed user input
@@ -17,6 +17,5 @@ class Car:
     #where we run all the motors and everything
     def accept_data(self, data):
         #print the data for now, later we'll do stuff with it
-        if data:
-            print(self, data)
+        print(self, data)
 
