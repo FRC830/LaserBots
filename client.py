@@ -21,7 +21,9 @@ SIZE = 1024
 class Client(comm.Client):
     def __init__(self, *args):
         super(Client, self).__init__(*args)
-        self.car = car.Car()
+        self.car = car.Car(
+            client = self
+        )
 
     def on_connect(self):
         print('Connected to %s:%s' % self.addr)
@@ -30,7 +32,7 @@ class Client(comm.Client):
         self.car.accept_data(data)
 
     def on_loop(self):
-        self.send(self.car.data_to_send())
+        self.car.loop()
 
     def on_disconnect(self):
         print('Disconnected.')

@@ -8,13 +8,18 @@
 import random
 
 class Car:
-    #returns the data that should be sent to the server
-    #tells whether the car hit another with the laser, and possibly other things
-    def data_to_send(self):
+    def __init__(self, client):
+        self.client = client
+
+    # called every tick - sends data to server
+    def loop(self):
         data = {}
         if random.randint(1, 20) == 1:
             data['hit_car'] = True
-        return data
+        self.send(data)
+
+    def send(self, data):
+        self.client.send(data)
 
     #takes the data sent by the server
     #which will be processed user input
