@@ -167,7 +167,7 @@ class Client:
                 if e.errno == 9:
                     # Client closed
                     break
-                elif e.errno == 35:
+                elif e.errno in (35, 10035):
                     # No data
                     delay()
                 else:
