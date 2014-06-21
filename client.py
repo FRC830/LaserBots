@@ -6,7 +6,7 @@ import sys
 import time
 import socket
 
-import server
+import lib.comm as comm
 import car
 
 try:
@@ -55,7 +55,7 @@ while True:
             continue
         #car.accept_data(data)
         to_send = client_car.data_to_send()
-        sock.send(server.encode_message(to_send))
+        sock.send(comm.encode_message(to_send))
     except KeyboardInterrupt:
         print('')
         break
