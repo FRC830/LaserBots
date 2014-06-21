@@ -75,10 +75,10 @@ class Server:
         else:
             raise ValueError('Unknown event: %r' % event)
 
-    def add_dispatcher(self, dispatcher):
+    def add_dispatcher(self, dispatcher, prefix=''):
         for event in self._callbacks:
-            if hasattr(dispatcher, event):
-                self.add_callback(event, getattr(dispatcher, event))
+            if hasattr(dispatcher, prefix + event):
+                self.add_callback(event, getattr(dispatcher, prefix + event))
 
     def _trigger_callbacks(self, event, *data):
         """ Triggers all callbacks bound to event """
@@ -94,6 +94,7 @@ class ClientHandler(threading.Thread):
         self.server, self.socket, self.addr = server, client_socket, remote_address
         self.socket.setblocking(0)
         self.disconnect_flag = False
+        self.send_queue = []
         self.info = {}
 
     def run(self):
@@ -103,6 +104,10 @@ class ClientHandler(threading.Thread):
             data = None
             try:
                 data = self.socket.recv(1024)
+                for msg in self.send_queue:
+                    msg = encode_message(msg)
+                    self.socket.send(msg)
+                self.send_queue = []
             except socket.error as e:
                 if e.errno == 9:
                     # Client closed
@@ -122,5 +127,32 @@ class ClientHandler(threading.Thread):
         self.socket.close()
         self.server.remove_client(self)
 
+    def send(self, data):
+        with self.server.obtain_lock():
+            self.send_queue.append(data)
+
     def close(self):
         self.disconnect_flag = True
+
+class Dispatcher:
+    def __init__(self):
+        self.clients = []
+        self.server = None
+
+    def Dispatcher_connect(self, client):
+        self.clients.append(client)
+
+    def Dispatcher_disconnect(self, client):
+        self.clients.remove(client)
+
+    def bind(self, server):
+        server.add_dispatcher(self, prefix='Dispatcher_')
+        server.add_dispatcher(self)
+        self.server = server
+
+    def send_to(self, msg, client):
+        client.send(msg)
+
+    def send_all(self, msg):
+        for c in self.clients:
+            c.send(msg)

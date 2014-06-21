@@ -9,18 +9,14 @@ import car_controller
 HOST = ''
 PORTS = (50001, 50010)
 
-class Dispatcher:
-    def __init__(self):
-        self.clients = []
+class Dispatcher(comm.Dispatcher):
     def connect(self, client):
         print('client connected: %s:%s' % client.addr)
         client.info = {
             'controller': car_controller.CarController()
         }
-        self.clients.append(client)
     def disconnect(self, client):
         print('client disconnected: %s:%s' % client.addr)
-        self.clients.remove(client)
     def message(self, client, data):
         print('message from %s:%s: %s' % (client.addr[0], client.addr[1], data))
         client.info['controller'].accept_data(data)
@@ -53,7 +49,7 @@ def main():
     if not server:
         print('Fatal: Could not find any open ports between %i and %i' % PORTS)
         return
-    server.add_dispatcher(Dispatcher())
+    Dispatcher().bind(server)
     try:
         main_server(server)
     finally:
