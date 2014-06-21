@@ -121,7 +121,7 @@ class ClientHandler(threading.Thread):
                 if e.errno in (9, 32):
                     # Client closed
                     break
-                elif e.errno == 35:
+                elif e.errno in (35, 10035):
                     # No data
                     delay()
                 else:
