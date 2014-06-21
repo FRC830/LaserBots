@@ -28,11 +28,10 @@ def write(words, surf, x, y, color = (0,0,0), size = 36):
         textpos = text.get_rect(center = (x,y))
         surf.blit(text, textpos)
 
-class PowerMeter(pygame.sprite.Sprite):
+class PowerMeter(object):
     """Indicates when you can shoot"""
-    def __init__(self, bg, x, y):
-        pygame.sprite.Sprite.__init__(self)
-        self.bg = bg
+    def __init__(self, surf, x, y):
+        self.bg = surf#the surface to draw on
         self.width = 100
         self.height = 20
         self.power = 0#%
@@ -53,6 +52,26 @@ class PowerMeter(pygame.sprite.Sprite):
             self.power=0
             pygame.draw.rect(self.bg, (255,255,255), pygame.Rect(self.x,self.y,self.width,self.height))
 
+class GameTimer(object):
+    """Bar that indicates time left in the game"""
+    def __init__(self, surf, clock, time = 180):
+        self.start_time = time
+        self.time = time
+        self.bg = surf
+        self.color = (0,255,0)
+        self.x = 0
+        self.y = 490
+        self.width = SCREEN_SIZE[0]
+        self.height = 20
+        self.clock = clock
+        
+        pygame.draw.rect(self.bg, self.color, pygame.Rect(self.x,self.y,self.width,self.height))
+    def update(self):
+        self.time -= (self.clock.get_time())/1000
+    #def count(self):
+        pygame.draw.rect(self.bg, (255,255,255), pygame.Rect(self.x,self.y,self.width,self.height))
+        pygame.draw.rect(self.bg, self.color, pygame.Rect(self.x,self.y,self.time/self.start_time*self.width,self.height))
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -69,8 +88,9 @@ def main():
 
     meter1 = PowerMeter(background, 10, 100)
     meter2 = PowerMeter(background, 510, 100)
+    game_time = GameTimer(background, clock)
 
-    updateables = (meter1, meter2)#list of things to update in the loop
+    updateables = (meter1, meter2, game_time)#list of things to update in the loop
     #allsprites = pygame.sprite.RenderPlain(())
 
     write("LaserBots!", background, 500, 25, (46,45,123), 50)
