@@ -20,8 +20,8 @@ class Dispatcher(comm.Dispatcher):
             )
         }
         for c in self.clients:
-            c.info['controller'].controllers = [c2.info['controller']
-                                                for c2 in self.clients]
+            c.info['controller'].controller_list = [c2.info['controller']
+                                                    for c2 in self.clients]
     def disconnect(self, client):
         print('client disconnected: %s:%s' % client.addr)
     def loop(self, client):

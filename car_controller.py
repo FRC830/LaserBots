@@ -16,12 +16,11 @@ class CarController:
         self.client, self.dispatcher = client, dispatcher
         self.id = joy_id
         self.send({'id': self.id})
-        self.controllers = []  # list of all controllers
+        self.controller_list = []  # list of all controllers
         if pg.joystick.get_count() > joy_id:
             self.joy = pg.joystick.Joystick(joy_id)
         else:
             print('Joystick %i not detected' % (joy_id))
-        self.health = 100
 
     # the main loop calls this every cycle
     def loop(self):
@@ -36,16 +35,23 @@ class CarController:
     def send(self, data):
         self.dispatcher.send_to(self.client, data)
 
+    def send_to_other(self, data):
+        for c in self.controller_list:
+            if c is not self:
+                c.send(data)
+
+    def send_to_all(self, data):
+        for c in self.controller_list:
+            c.send(data)
+
     # takes the data sent by the car
     # the main loop calls this every cycle
     # which will tell us whether it hit the other car, and possibly other things
     def accept_data(self, data):
         if type(data) == dict:
             if data.has_key('hit_car'):
-                for c in self.controllers:
-                    if c is not self:
-                        c.change_health(-1)
-
-    def change_health(self, delta):
-        self.health += delta
-        self.send({'health': self.health})
+                self.send_to_other({'health': -1})
+            if data.has_key('health'):
+                health = data['health']
+                if health == 0:
+                    self.send_to_all({'game_over': True, 'winner': 1 - self.id})
