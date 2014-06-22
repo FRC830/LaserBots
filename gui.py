@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import os, pygame
+import os, pygame, sys
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -67,7 +67,7 @@ class GameTimer(object):
         self.width = SCREEN_SIZE[0]
         self.height = 20
         self.clock = clock
-        
+
         pygame.draw.rect(self.bg, self.color, pygame.Rect(self.x,self.y,self.width,self.height))
     def update(self):
         self.time -= (self.clock.get_time())/1000
@@ -76,11 +76,22 @@ class GameTimer(object):
         pygame.draw.rect(self.bg, self.color, pygame.Rect(self.x,self.y,self.time/self.start_time*self.width,self.height))
 
 def main():
+    import client
+    c = None
+    for port in range(*client.PORTS):
+        try:
+            c = client.GuiClient(('localhost', port))
+            break
+        except client.socket.error as e:
+            print(e)
+    if c is None:
+        print('Server not found')
+        sys.exit()
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption('FRC Team 830')
     pygame.mouse.set_visible(1)
-    #create background    
+    #create background
     background_img = pygame.image.load(os.path.join(data_dir, "bg.png")).convert()
     background = pygame.Surface(SCREEN_SIZE)
     background.blit(background_img, (0, 0))
@@ -99,31 +110,31 @@ def main():
     write("LaserBots!", background, 500, 25, (46,45,123), 50)
     write("Player 1", background, 250, 60, (0,255,0), 50)
     write("Player 2", background, 750, 60, (255,0,0), 50)
-#Main Loop
-    going = True
-    while going:
-        clock.tick(60)
+
+    #Main Loop
+    def main_loop():
+        clock.tick(20)
 
         #Handle Input Events
         for event in pygame.event.get():
-            if event.type == QUIT:
-                going = False
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                going = False
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+                return
         for obj in updateables:
             obj.update()
         #allsprites.update()
         if pygame.key.get_pressed()[K_w]:
             meter1.fire()
         if pygame.key.get_pressed()[K_UP]:
-            meter2.fire()       
+            meter2.fire()
         #Draw Everything
         screen.blit(background, (0, 0))
         #allsprites.draw(screen)
         pygame.display.flip()
 
-
-    pygame.quit()
+    c.on_loop = main_loop
+    c.listen_forever()
 
 #Game Over
 

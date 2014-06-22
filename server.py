@@ -44,7 +44,7 @@ class Dispatcher(comm.Dispatcher):
             # Send all messages from cars to GUI
             for c, cdata in self.client_data.items():
                 if cdata['type'] == 'gui':
-                    c.send({'id': cdata['controller'].id, 'data': data})
+                    c.send({'id': self.client_data[client]['controller'].id, 'data': data})
 
     def init_car(self, client):
         self.client_data[client] = {
@@ -56,10 +56,12 @@ class Dispatcher(comm.Dispatcher):
             'type': 'car',
         }
         for c in self.clients:
-            if c in self.client_data:
-                print(self.client_data.values())
-                self.client_data[c]['controller'].controller_list = \
-                    [c2['controller'] for c2 in self.client_data.values() if c2['type'] == 'car']
+            if c in self.client_data and self.client_data[c]['type'] == 'car':
+                controller_list = []
+                for c2 in self.client_data.values():
+                    if c2['type'] == 'car':
+                        controller_list.append(c2['controller'])
+                self.client_data[c]['controller'].controller_list = controller_list
 
 
 def main_server(server):

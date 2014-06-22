@@ -24,7 +24,7 @@ class Car:
         if self.game_over:
             return
         data = {}
-        if random.randint(1, 10) == 1:
+        if random.randint(1, 10) == 1 and self.id > -1:
             self.hits += 1
             data['hit_car'] = True
             self.log("I hit a car! Hits: %i", self.hits)
@@ -49,10 +49,10 @@ class Car:
                 self.id = data['id']
             if data.has_key('health'):
                 self.update_health(data['health'])
-            if data.has_key('speed'):
-                print('speed: %f' % data['speed'])
-            if data.has_key('turn'):
-                print('turn: %f' % data['turn'])
+            #if data.has_key('speed'):
+            #    print('speed: %f' % data['speed'])
+            #if data.has_key('turn'):
+            #    print('turn: %f' % data['turn'])
 
     def update_health(self, delta):
         self.health += delta
