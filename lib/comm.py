@@ -15,7 +15,7 @@ import pygame as pg
 from contextlib import contextmanager
 
 TIMEOUT = 0.1
-TICK_INTERVAL = 0.005
+TICK_INTERVAL = 0.002
 SOCKET_CLOSED = (9, 32, 54)
 SOCKET_NO_DATA = (35, 10035)
 
