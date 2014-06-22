@@ -49,6 +49,10 @@ class Car:
                 self.id = data['id']
             if data.has_key('health'):
                 self.update_health(data['health'])
+            if data.has_key('speed'):
+                print('speed: %f' % data['speed'])
+            if data.has_key('turn'):
+                print('turn: %f' % data['turn'])
 
     def update_health(self, delta):
         self.health += delta

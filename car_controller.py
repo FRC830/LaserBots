@@ -24,6 +24,7 @@ class CarController:
 
     # the main loop calls this every cycle
     def loop(self):
+        pg.event.pump()
         if self.joy:
             # arbitrary controls for now
             speed = joy.get_axis(1)
