@@ -15,6 +15,7 @@ import pygame as pg
 from contextlib import contextmanager
 
 TIMEOUT = 0.1
+TICK_INTERVAL = 0.005
 SOCKET_CLOSED = (9, 32, 54)
 SOCKET_NO_DATA = (35, 10035)
 
@@ -153,11 +154,14 @@ class Client:
         self.addr = addr
         self.disconnect = False
         self.send_queue = []
+        self.last_tick = time.time()
         self.on_connect()
 
     def listen_forever(self):
         while not self.disconnect:
-            self.on_loop()
+            if self.last_tick + TICK_INTERVAL < time.time():
+                self.last_tick = time.time()
+                self.on_loop()
             data = None
             try:
                 for msg in self.send_queue:

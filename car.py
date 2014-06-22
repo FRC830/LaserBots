@@ -24,9 +24,9 @@ class Car:
         if self.game_over:
             return
         data = {}
-        if random.randint(1, 100) == 1:
+        if random.randint(1, 10) == 1:
             self.hits += 1
-            data['hit_car'] = self.hits
+            data['hit_car'] = True
             self.log("I hit a car! Hits: %i", self.hits)
         self.send(data)
 
