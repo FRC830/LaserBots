@@ -16,7 +16,7 @@ from contextlib import contextmanager
 
 TIMEOUT = 0.1
 TICK_INTERVAL = 0.002
-SOCKET_CLOSED = (9, 32, 54)
+SOCKET_CLOSED = (9, 32, 54, 10054)
 SOCKET_NO_DATA = (35, 10035)
 
 def encode_message(data):
