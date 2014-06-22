@@ -12,7 +12,7 @@ class Car:
         self.client = client
         self.hits = 0
         self.health = 100
-        self.id = None
+        self.id = -1
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
 
@@ -49,6 +49,10 @@ class Car:
                 self.id = data['id']
             if data.has_key('health'):
                 self.update_health(data['health'])
+            if data.has_key('speed'):
+                print('speed: %f' % data['speed'])
+            if data.has_key('turn'):
+                print('turn: %f' % data['turn'])
 
     def update_health(self, delta):
         self.health += delta
