@@ -14,8 +14,9 @@ class Dispatcher(comm.Dispatcher):
     def next_id(self):
         id = 0
         for c in self.client_data.values():
-            if id == c['controller'].id:
-                id += 1
+            if c['type'] == 'car':
+                if id == c['controller'].id:
+                    id += 1
         return id
     def connect(self, client):
         print('client connected: %s:%s' % client.addr)
@@ -35,9 +36,16 @@ class Dispatcher(comm.Dispatcher):
             if data.has_key('init'):
                 if data['type'] == 'car':
                     self.init_car(client)
+                elif data['type'] == 'gui':
+                    self.client_data[client] = {'type': 'gui'}
                 return
         if self.client_data[client]['type'] == 'car':
             self.client_data[client]['controller'].accept_data(data)
+            # Send all messages from cars to GUI
+            for c, cdata in self.client_data.items():
+                if cdata['type'] == 'gui':
+                    c.send({'id': cdata['controller'].id, 'data': data})
+
     def init_car(self, client):
         self.client_data[client] = {
             'controller': car_controller.CarController(
@@ -48,8 +56,10 @@ class Dispatcher(comm.Dispatcher):
             'type': 'car',
         }
         for c in self.clients:
-            self.client_data[c]['controller'].controller_list = \
-                [c2['controller'] for c2 in self.client_data.values()]
+            if c in self.client_data:
+                print(self.client_data.values())
+                self.client_data[c]['controller'].controller_list = \
+                    [c2['controller'] for c2 in self.client_data.values() if c2['type'] == 'car']
 
 
 def main_server(server):

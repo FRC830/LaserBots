@@ -192,6 +192,8 @@ class Client:
     def on_connect(self): pass
     def on_disconnect(self): pass
     def on_message(self, data): pass
+    def on_loop(self): pass
+    
 
     def send(self, data):
         self.send_queue.append(data)

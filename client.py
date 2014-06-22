@@ -14,13 +14,13 @@ try:
 except ImportError:
     pass
 
-SERVER_IP = sys.argv[1] if len(sys.argv) > 1 else raw_input('Remote IP: ')
+SERVER_IP = sys.argv[1] if len(sys.argv) > 1 else None
 PORTS = (50001, 50010)
 SIZE = 1024
 
-class Client(comm.Client):
+class CarClient(comm.Client):
     def __init__(self, *args):
-        super(Client, self).__init__(*args)
+        super(CarClient, self).__init__(*args)
         self.car = car.Car(
             client = self
         )
@@ -37,17 +37,32 @@ class Client(comm.Client):
     def on_disconnect(self):
         print('Disconnected.')
 
-connected = False
-for port in range(PORTS[0], PORTS[1] + 1):
-    try:
-        print('- Trying %s:%i' % (SERVER_IP, port))
-        client = Client((SERVER_IP, port))
-        connected = True
-        break
-    except socket.error as e:
-        print('- Connection failed: %s' % e)
+class GuiClient(comm.Client):
+    def __init__(self, *args):
+        super(GuiClient, self).__init__(*args)
+        self.send({'init': True, 'type': 'gui'})
 
-if not connected:
-    print('Fatal: Could not find server.')
-    sys.exit(1)
-client.listen_forever()
+    def on_message(self, data):
+        print('msg: %r' % data)
+
+def main():
+    global SERVER_IP
+    if SERVER_IP == None:
+        SERVER_IP = raw_input('Remote IP: ')
+    connected = False
+    for port in range(PORTS[0], PORTS[1] + 1):
+        try:
+            print('- Trying %s:%i' % (SERVER_IP, port))
+            client = CarClient((SERVER_IP, port))
+            connected = True
+            break
+        except socket.error as e:
+            print('- Connection failed: %s' % e)
+    
+    if not connected:
+        print('Fatal: Could not find server.')
+        sys.exit(1)
+    client.listen_forever()
+
+if __name__ == '__main__':
+    main()
