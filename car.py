@@ -14,6 +14,7 @@ class Car:
         self.health = 100
         self.id = None
         self.game_over = False
+        self.send({'init': True, 'type': 'car'})
 
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))

@@ -53,5 +53,5 @@ class CarController:
                 self.send_to_other({'health': -1})
             if data.has_key('health'):
                 health = data['health']
-                if health == 0:
+                if health <= 0:
                     self.send_to_all({'game_over': True, 'winner': 1 - self.id})

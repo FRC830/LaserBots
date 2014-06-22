@@ -10,24 +10,47 @@ HOST = ''
 PORTS = (50001, 50010)
 
 class Dispatcher(comm.Dispatcher):
+    client_data = {}
+    def next_id(self):
+        id = 0
+        for c in self.client_data.values():
+            if id == c['controller'].id:
+                id += 1
+        return id
     def connect(self, client):
         print('client connected: %s:%s' % client.addr)
-        client.info = {
-            'controller': car_controller.CarController(
-                joy_id = len(self.clients) - 1, # joysticks are 0-indexed
-                client = client,
-                dispatcher = self,
-            )
-        }
-        for c in self.clients:
-            c.info['controller'].controller_list = [c2.info['controller']
-                                                    for c2 in self.clients]
     def disconnect(self, client):
         print('client disconnected: %s:%s' % client.addr)
+        if client in self.client_data:
+            del self.client_data[client]
     def loop(self, client):
-        client.info['controller'].loop()
+        if not client in self.client_data:
+            # Not yet initialized
+            return
+        client_type = self.client_data[client]['type']
+        if client_type == 'car':
+            self.client_data[client]['controller'].loop()
     def message(self, client, data):
-        client.info['controller'].accept_data(data)
+        if type(data) == dict:
+            if data.has_key('init'):
+                if data['type'] == 'car':
+                    self.init_car(client)
+                return
+        if self.client_data[client]['type'] == 'car':
+            self.client_data[client]['controller'].accept_data(data)
+    def init_car(self, client):
+        self.client_data[client] = {
+            'controller': car_controller.CarController(
+                joy_id = self.next_id(),
+                client = client,
+                dispatcher = self,
+            ),
+            'type': 'car',
+        }
+        for c in self.clients:
+            self.client_data[c]['controller'].controller_list = \
+                [c2['controller'] for c2 in self.client_data.values()]
+
 
 def main_server(server):
     print('Starting server on %s:%s...' % server.addr)
