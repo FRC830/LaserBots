@@ -12,7 +12,7 @@ class Car:
         self.client = client
         self.hits = 0
         self.health = 100
-        self.id = None
+        self.id = -1
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
 

@@ -1,4 +1,7 @@
 #This will run on the laptops and show statistics for the cars
+
+from __future__ import division
+
 import os, pygame
 from pygame.locals import *
 from pygame.compat import geterror
