@@ -59,7 +59,7 @@ def main_server(server):
     except Exception as e:
         print('%s: %s' % (type(e), e))
         return False, e
-    except KeyboardInterrupt, SystemExit:
+    except (KeyboardInterrupt, SystemExit):
         print('\nExiting')
         server.terminate()
         return True, None
