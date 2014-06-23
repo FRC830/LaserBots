@@ -32,7 +32,7 @@ class Dispatcher(comm.Dispatcher):
             self.client_data[client]['controller'].loop()
     def message(self, client, data):
         if type(data) == dict:
-            if data.has_key('init'):
+            if 'init' in data:
                 if data['type'] == 'car':
                     self.init_car(client)
                 return

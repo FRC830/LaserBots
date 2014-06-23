@@ -72,9 +72,9 @@ class CarController:
     # which will tell us whether it hit the other car, and possibly other things
     def accept_data(self, data):
         if type(data) == dict:
-            if data.has_key('hit_car'):
+            if 'hit_car' in data:
                 self.send_to_other({'health': -1})
-            if data.has_key('health'):
+            if 'health' in data:
                 health = data['health']
                 if health <= 0:
                     self.send_to_all({'game_over': True, 'winner': 1 - self.id})
