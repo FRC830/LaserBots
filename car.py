@@ -9,9 +9,6 @@ import random
 from victor import Victor
 from servo import Servo
 
-drive_motor = Victor()
-turn_motor = Servo()
-
 class Car:
     def __init__(self, client):
         self.client = client
@@ -20,7 +17,9 @@ class Car:
         self.id = -1
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
-
+        
+        drive_motor = Victor()#pin 12
+        turn_motor = Servo()#pin 11
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -55,10 +54,10 @@ class Car:
             if 'health' in data:
                 self.update_health(data['health'])
             if 'speed' in data:
-                drive_motor.set_speed(data['speed'])
+                self.drive_motor.set_speed(data['speed'])
                 print('speed: %f' % data['speed'])
             if 'turn' in data:
-                turn_motor.set_angle(data['turn'])
+                self.turn_motor.set_angle(data['turn'])
                 print('turn: %f' % data['turn'])
 
     def update_health(self, delta):
