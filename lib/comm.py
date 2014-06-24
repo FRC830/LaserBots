@@ -4,6 +4,7 @@ from __future__ import print_function
 
 __metaclass__ = type  # Use new-style classes
 
+import errno
 import socket
 import sys
 import threading
@@ -16,14 +17,62 @@ from contextlib import contextmanager
 
 TIMEOUT = 0.1
 TICK_INTERVAL = 0.002
-SOCKET_CLOSED = (9, 32, 54, 10054)
-SOCKET_NO_DATA = (35, 10035)
+SOCKET_CLOSED = (errno.EBADF, errno.EPIPE, errno.ECONNRESET)
+SOCKET_NO_DATA = (errno.EAGAIN, )
 
 def encode_message(data):
     return zlib.compress(pickle.dumps(data, 2))
 
 def decode_message(data):
     return pickle.loads(zlib.decompress(data))
+
+class SocketConnection(threading.Thread):
+    def __init__(self, socket):
+        super(SocketConnection, self).__init__()
+        socket.settimeout(TIMEOUT)
+        self.socket = socket
+        self.disconnect = False
+        self.send_queue = []
+        self.recv_queue = []
+        self.lock = threading.Lock()
+
+    def run(self):
+        while not self.disconnect:
+            data = None
+            try:
+                for msg in self.send_queue:
+                    msg = encode_message(msg)
+                    self.socket.send(msg)
+                self.send_queue = []
+                data = self.socket.recv(1024)
+            except socket.timeout:
+                pass
+            except socket.error as e:
+                if e.errno in SOCKET_CLOSED:
+                    # Client closed
+                    break
+                elif e.errno in SOCKET_NO_DATA:
+                    # No data
+                    continue
+                else:
+                    raise
+            if data is None:
+                continue
+            if data == '':
+                break
+            data = decode_message(data)
+            self.recv_queue.append(data)
+        self.socket.close()
+
+    def send(self, msg):
+        with self.lock:
+            self.send_queue.append(msg)
+
+    def recv(self):
+        with self.lock:
+            tmp_queue = self.recv_queue
+            self.recv_queue = []
+            return tmp_queue
 
 class Server:
     """ Basic socket server """
