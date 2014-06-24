@@ -7,6 +7,7 @@
 
 import random
 from victor import Victor
+from servo import Servo
 
 drive_motor = Victor()
 turn_motor = Servo()
