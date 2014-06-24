@@ -1,7 +1,7 @@
 # hopefully this will run on the Pi and control victors
 import RPi.GPIO as gpio
 class Victor(object):
-    def __init__(pin=12, freq=100):
+    def __init__(self, pin = 12, freq = 100):
         self.pin = pin
         self.freq = freq
         gpio.setmode(gpio.BOARD)

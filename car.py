@@ -6,6 +6,8 @@
 # each instance of this class corresponds to a car
 
 import random
+from victor import Victor
+from servo import Servo
 
 class Car:
     def __init__(self, client):
@@ -15,7 +17,9 @@ class Car:
         self.id = -1
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
-
+        
+        drive_motor = Victor()#pin 12
+        turn_motor = Servo()#pin 11
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -39,19 +43,21 @@ class Car:
     # where we run all the motors and everything
     def accept_data(self, data):
         if type(data) == dict:
-            if data.has_key('game_over'):
+            if 'game_over' in data:
                 self.game_over = True
                 if data['winner'] == self.id:
                     self.log('I win!')
                 else:
                     self.log('I lose.')
-            if data.has_key('id'):
+            if 'id' in data:
                 self.id = data['id']
-            if data.has_key('health'):
+            if 'health' in data:
                 self.update_health(data['health'])
-            if data.has_key('speed'):
+            if 'speed' in data:
+                self.drive_motor.set_speed(data['speed'])
                 print('speed: %f' % data['speed'])
-            if data.has_key('turn'):
+            if 'turn' in data:
+                self.turn_motor.set_angle(data['turn'])
                 print('turn: %f' % data['turn'])
 
     def update_health(self, delta):
