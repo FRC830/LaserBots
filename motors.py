@@ -47,7 +47,7 @@ class Servo(object):
     def set_angle(self, angle):
         """sets duty cycle based on an angle"""
         self.angle = angle
-        pulse = angle_to_dc(self.angle)
+        pulse = self.angle_to_dc(self.angle)
         self.set_duty_cycle(pulse)
     def angle_to_dc(self, angle):
         """compute the duty cycle to give a certain angle"""

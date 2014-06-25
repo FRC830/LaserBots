@@ -10,3 +10,4 @@ class gpio(object):
     class PWM(object):
         def __init__(*args): pass
         def start(*args): pass
+        def ChangeDutyCycle(*args): pass

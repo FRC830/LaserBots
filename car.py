@@ -17,8 +17,8 @@ class Car:
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
         
-        self.drive_motor = Victor()#pin 12
-        self.turn_motor = Servo()#pin 11
+        self.drive_motor = Victor()  # pin 12
+        self.turn_motor = Servo()    # pin 11
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
