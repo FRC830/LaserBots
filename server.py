@@ -23,7 +23,7 @@ class Dispatcher(comm.Dispatcher):
         print('client disconnected: %s:%s' % client.addr)
         if client in self.client_data:
             del self.client_data[client]
-    def loop(self, client):
+    def tick(self, client):
         if not client in self.client_data:
             # Not yet initialized
             return

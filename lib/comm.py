@@ -38,6 +38,7 @@ class SocketConnection(threading.Thread):
 
     def run(self):
         while not self.disconnect:
+            self.tick()
             data = None
             try:
                 for msg in self.send_queue:
@@ -64,6 +65,10 @@ class SocketConnection(threading.Thread):
             self.recv_queue.append(data)
         self.socket.close()
 
+    def tick(self):
+        """ Called every cycle before sending/receiving data """
+        pass
+
     def send(self, msg):
         with self.lock:
             self.send_queue.append(msg)
@@ -83,6 +88,7 @@ class Server:
         self.addr = (host, port)
         self.lock = threading.Lock()
         self.clients = []
+        self.disconnect = False
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((host, port))
         self.socket.listen(4)
@@ -90,31 +96,24 @@ class Server:
             'connect': [],
             'disconnect': [],
             'message': [],
-            'loop': [],
+            'tick': [],
         }
 
     def serve_forever(self):
-        while True:
+        while not self.disconnect:
             ClientHandler(self, *self.socket.accept()).start()
 
     def send_message(self, msg, clients):
-        msg = encode_message(msg)
         for c in clients:
-            c.socket.send(msg)
-
-    @contextmanager
-    def obtain_lock(self):
-        self.lock.acquire()
-        yield
-        self.lock.release()
+            c.send(msg)
 
     def add_client(self, client):
-        with self.obtain_lock():
+        with self.lock:
             self.clients.append(client)
         self._trigger_callbacks('connect', client)
 
     def remove_client(self, client):
-        with self.obtain_lock():
+        with self.lock:
             if client in self.clients:
                 self.clients.remove(client)
         self._trigger_callbacks('disconnect', client)
@@ -122,6 +121,7 @@ class Server:
     def terminate(self):
         for c in self.clients:
             c.close()
+        self.disconnect = True
         self.socket.close()
 
     def add_callback(self, event, func):
@@ -142,7 +142,7 @@ class Server:
 
     def _trigger_callbacks(self, event, *data):
         """ Triggers all callbacks bound to event """
-        with self.obtain_lock():
+        with self.lock:
             if event in self._callbacks:
                 for func in self._callbacks[event]:
                     func(*data)
@@ -159,6 +159,12 @@ class ClientHandler(SocketConnection):
         self.server.add_client(self)
         super(ClientHandler, self).run()
         self.server.remove_client(self)
+
+    def tick(self):
+        received = self.recv()
+        self.server._trigger_callbacks('tick', self)
+        for msg in received:
+            self.server._trigger_callbacks('message', self, msg)
 
 class Client:
     """ Client-side client """
