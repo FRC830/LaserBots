@@ -74,6 +74,9 @@ class SocketConnection(threading.Thread):
             self.recv_queue = []
             return tmp_queue
 
+    def close(self):
+        self.disconnect = True
+
 class Server:
     """ Basic socket server """
     def __init__(self, host, port):
@@ -146,53 +149,16 @@ class Server:
             else:
                 raise ValueError('Unknown event: %r' % event)
 
-class ClientHandler(threading.Thread):
+class ClientHandler(SocketConnection):
     """ Server-side client """
     def __init__(self, server, client_socket, remote_address):
-        super(ClientHandler, self).__init__()
-        self.server, self.socket, self.addr = server, client_socket, remote_address
-        self.socket.settimeout(TIMEOUT)
-        self.disconnect = False
-        self.send_queue = []
-        self.info = {}
+        super(ClientHandler, self).__init__(client_socket)
+        self.server, self.remote_address = server, remote_address
 
     def run(self):
-        # this runs in a separate thread for each client
         self.server.add_client(self)
-        while not self.disconnect:
-            self.server._trigger_callbacks('loop', self)
-            data = None
-            try:
-                for msg in self.send_queue:
-                    msg = encode_message(msg)
-                    self.socket.send(msg)
-                self.send_queue = []
-                data = self.socket.recv(1024)
-            except socket.timeout:
-                pass
-            except socket.error as e:
-                if e.errno in SOCKET_CLOSED:
-                    # Client closed
-                    break
-                elif e.errno in SOCKET_NO_DATA:
-                    # No data
-                    continue
-                else:
-                    raise
-            if data is None:
-                continue
-            if data == '':
-                break
-            data = decode_message(data)
-            self.server._trigger_callbacks('message', self, data)
-        self.socket.close()
+        super(ClientHandler, self).run()
         self.server.remove_client(self)
-
-    def send(self, data):
-        self.send_queue.append(data)
-
-    def close(self):
-        self.disconnect = True
 
 class Client:
     """ Client-side client """
