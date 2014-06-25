@@ -6,8 +6,7 @@
 # each instance of this class corresponds to a car
 
 import random
-from victor import Victor
-from servo import Servo
+from motors import Victor, Servo
 
 class Car:
     def __init__(self, client):
