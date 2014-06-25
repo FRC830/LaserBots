@@ -6,8 +6,7 @@
 # each instance of this class corresponds to a car
 
 import random
-from victor import Victor
-from servo import Servo
+from motors import Victor, Servo
 
 class Car:
     def __init__(self, client):
@@ -18,8 +17,8 @@ class Car:
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
         
-        drive_motor = Victor()#pin 12
-        turn_motor = Servo()#pin 11
+        self.drive_motor = Victor()#pin 12
+        self.turn_motor = Servo()#pin 11
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -33,7 +32,6 @@ class Car:
             data['hit_car'] = True
             self.log("I hit a car! Hits: %i", self.hits)
         self.send(data)
-
     def send(self, data):
         self.client.send(data)
 

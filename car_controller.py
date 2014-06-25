@@ -50,9 +50,11 @@ class CarController:
         if self.joy:
             #negative values are up on the y-axes
             speed = -self.joy.get_axis(LEFT_Y)
-            turn = self.joy.get_axis(RIGHT_X)
+            #change joystick -1 -> 1 into servo 0 -> 180
+            turn = 90 * (self.joy.get_axis(RIGHT_X)+1)
         else:
-            speed = turn = 0
+            speed = 0
+            turn = 90
         self.send({'speed': speed, 'turn': turn})
 
     def send(self, data):
