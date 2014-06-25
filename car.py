@@ -32,7 +32,6 @@ class Car:
             data['hit_car'] = True
             self.log("I hit a car! Hits: %i", self.hits)
         self.send(data)
-
     def send(self, data):
         self.client.send(data)
 

@@ -39,12 +39,16 @@ class Servo(object):
         self.pin = pin
         
         self.servo = gpio.PWM(self.pin, 50)
-        self.servo.start(6)#starting duty cycle
+        self.servo.start(self.angle_to_dc(90))#starting duty cycle
     def set_angle(self, angle):
         """sets duty cycle based on an angle"""
         self.angle = angle
-        pulse = -0.0488888888888888 * self.angle + 11
-        self.servo.ChangeDutyCycle(pulse)
+        pulse = angle_to_dc(self.angle)
+        self.set_duty_cycle(pulse)
+    def angle_to_dc(self, angle):
+        """compute the duty cycle to give a certain angle"""
+        return -0.0488888888888888 * angle + 11
     def set_duty_cycle(self, dc):
-        """for testing only"""
+        """for testing/internal use only"""
         self.servo.ChangeDutyCycle(dc)
+        
