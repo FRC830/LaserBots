@@ -166,56 +166,90 @@ class ClientHandler(SocketConnection):
         for msg in received:
             self.server._trigger_callbacks('message', self, msg)
 
-class Client:
+class Client(SocketConnection):
     """ Client-side client """
     def __init__(self, addr):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(addr)
-        self.socket.settimeout(TIMEOUT)
+        super(Client, self).__init__(self.socket)
         self.addr = addr
-        self.disconnect = False
-        self.send_queue = []
-        self.last_tick = time.time()
         self.on_connect()
 
-    def listen_forever(self):
-        while not self.disconnect:
-            if self.last_tick + TICK_INTERVAL < time.time():
-                self.last_tick = time.time()
-                self.on_loop()
-            data = None
-            try:
-                for msg in self.send_queue:
-                    msg = encode_message(msg)
-                    self.socket.send(msg)
-                self.send_queue = []
-                data = self.socket.recv(1024)
-            except socket.timeout:
-                pass
-            except socket.error as e:
-                if e.errno in SOCKET_CLOSED:
-                    # Client closed
-                    break
-                elif e.errno in SOCKET_NO_DATA:
-                    # No data
-                    continue
-                else:
-                    raise
-            if data is None:
-                continue
-            if data == '':
-                break
-            data = decode_message(data)
-            self.on_message(data)
-        self.socket.close()
+    def run(self):
+        super(Client, self).run()
         self.on_disconnect()
+
+    def listen_forever(self):
+        self.start()
+        while not self.disconnect:
+            time.sleep(TICK_INTERVAL)
+            self.on_loop()
+            received = self.recv()
+            for msg in received:
+                self.on_message(msg)
+
+    #def tick(self):
+    #    self.on_loop()
+    #    received = self.recv()
+    #    for msg in received:
+    #        self.on_message(msg)
 
     def on_connect(self): pass
     def on_disconnect(self): pass
     def on_message(self, data): pass
+    def on_loop(self): pass
 
-    def send(self, data):
-        self.send_queue.append(data)
+
+#class Client:
+#    """ Client-side client """
+#    def __init__(self, addr):
+#        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#        self.socket.connect(addr)
+#        self.socket.settimeout(TIMEOUT)
+#        self.addr = addr
+#        self.disconnect = False
+#        self.send_queue = []
+#        self.last_tick = time.time()
+#        self.on_connect()
+#
+#    def listen_forever(self):
+#        while not self.disconnect:
+#            if self.last_tick + TICK_INTERVAL < time.time():
+#                self.last_tick = time.time()
+#                self.on_loop()
+#            data = None
+#            try:
+#                for msg in self.send_queue:
+#                    msg = encode_message(msg)
+#                    self.socket.send(msg)
+#                self.send_queue = []
+#                data = self.socket.recv(1024)
+#            except socket.timeout:
+#                pass
+#            except socket.error as e:
+#                if e.errno in SOCKET_CLOSED:
+#                    # Client closed
+#                    break
+#                elif e.errno in SOCKET_NO_DATA:
+#                    # No data
+#                    continue
+#                else:
+#                    raise
+#            if data is None:
+#                continue
+#            if data == '':
+#                break
+#            data = decode_message(data)
+#            self.on_message(data)
+#        self.socket.close()
+#        self.on_disconnect()
+#
+#    def on_connect(self): pass
+#    def on_disconnect(self): pass
+#    def on_message(self, data): pass
+#
+#    def send(self, data):
+#        self.send_queue.append(data)
 
 class Dispatcher:
     def __init__(self):

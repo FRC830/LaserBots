@@ -55,7 +55,10 @@ class CarController:
         else:
             speed = 0
             turn = 90
-        self.send({'speed': speed, 'turn': turn})
+        #self.send({'speed': speed, 'turn': turn})
+        for i in range(100):
+            self.send({'test': i})
+        self.client.close()
 
     def send(self, data):
         self.dispatcher.send_to(self.client, data)
