@@ -57,8 +57,6 @@ class Car:
             if 'turn' in data:
                 self.turn_motor.set_angle(data['turn'])
                 print('turn: %f' % data['turn'])
-            if 'test' in data:
-                print(data['test'])
 
     def update_health(self, delta):
         self.health += delta

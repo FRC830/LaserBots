@@ -41,9 +41,7 @@ class SocketConnection(threading.Thread):
             self.tick()
             data = None
             try:
-                for msg in self.send_queue:
-                    msg = encode_message(msg)
-                    self.socket.send(msg)
+                self.socket.send(encode_message(self.send_queue))
                 self.send_queue = []
                 data = self.socket.recv(1024)
             except socket.timeout:
@@ -62,7 +60,7 @@ class SocketConnection(threading.Thread):
             if data == '':
                 break
             data = decode_message(data)
-            self.recv_queue.append(data)
+            self.recv_queue.extend(data)
         self.socket.close()
 
     def tick(self):
