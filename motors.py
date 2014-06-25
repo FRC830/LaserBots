@@ -1,4 +1,8 @@
-import RPi.GPIO as gpio
+try:
+    import RPi.GPIO as gpio
+except ImportError:
+    print('Warning: GPIO unavailable, using fallback dummy.gpio')
+    from lib.dummy import gpio
 gpio.setmode(gpio.BOARD)
 
 # hopefully this will run on the Pi and control victors and Servos

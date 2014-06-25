@@ -153,7 +153,7 @@ class ClientHandler(SocketConnection):
     """ Server-side client """
     def __init__(self, server, client_socket, remote_address):
         super(ClientHandler, self).__init__(client_socket)
-        self.server, self.remote_address = server, remote_address
+        self.server, self.addr = server, remote_address
 
     def run(self):
         self.server.add_client(self)
