@@ -50,4 +50,7 @@ for port in range(PORTS[0], PORTS[1] + 1):
 if not connected:
     print('Fatal: Could not find server.')
     sys.exit(1)
-client.listen_forever()
+try:
+    client.listen_forever()
+finally:
+    client.close()

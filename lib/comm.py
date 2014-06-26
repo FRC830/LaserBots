@@ -37,31 +37,34 @@ class SocketConnection(threading.Thread):
         self.lock = threading.Lock()
 
     def run(self):
-        while not self.disconnect:
-            self.tick()
-            data = None
-            try:
-                self.socket.send(encode_message(self.send_queue))
-                self.send_queue = []
-                data = self.socket.recv(1024)
-            except socket.timeout:
-                pass
-            except socket.error as e:
-                if e.errno in SOCKET_CLOSED:
-                    # Client closed
-                    break
-                elif e.errno in SOCKET_NO_DATA:
-                    # No data
+        try:
+            while not self.disconnect:
+                self.tick()
+                data = None
+                try:
+                    self.socket.send(encode_message(self.send_queue))
+                    self.send_queue = []
+                    data = self.socket.recv(1024)
+                except socket.timeout:
+                    pass
+                except socket.error as e:
+                    if e.errno in SOCKET_CLOSED:
+                        # Client closed
+                        break
+                    elif e.errno in SOCKET_NO_DATA:
+                        # No data
+                        continue
+                    else:
+                        raise
+                if data is None:
                     continue
-                else:
-                    raise
-            if data is None:
-                continue
-            if data == '':
-                break
-            data = decode_message(data)
-            self.recv_queue.extend(data)
-        self.socket.close()
+                if data == '':
+                    break
+                data = decode_message(data)
+                self.recv_queue.extend(data)
+            self.socket.close()
+        finally:
+            self.close()
 
     def tick(self):
         """ Called every cycle before sending/receiving data """
@@ -197,57 +200,6 @@ class Client(SocketConnection):
     def on_message(self, data): pass
     def on_loop(self): pass
 
-
-#class Client:
-#    """ Client-side client """
-#    def __init__(self, addr):
-#        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#        self.socket.connect(addr)
-#        self.socket.settimeout(TIMEOUT)
-#        self.addr = addr
-#        self.disconnect = False
-#        self.send_queue = []
-#        self.last_tick = time.time()
-#        self.on_connect()
-#
-#    def listen_forever(self):
-#        while not self.disconnect:
-#            if self.last_tick + TICK_INTERVAL < time.time():
-#                self.last_tick = time.time()
-#                self.on_loop()
-#            data = None
-#            try:
-#                for msg in self.send_queue:
-#                    msg = encode_message(msg)
-#                    self.socket.send(msg)
-#                self.send_queue = []
-#                data = self.socket.recv(1024)
-#            except socket.timeout:
-#                pass
-#            except socket.error as e:
-#                if e.errno in SOCKET_CLOSED:
-#                    # Client closed
-#                    break
-#                elif e.errno in SOCKET_NO_DATA:
-#                    # No data
-#                    continue
-#                else:
-#                    raise
-#            if data is None:
-#                continue
-#            if data == '':
-#                break
-#            data = decode_message(data)
-#            self.on_message(data)
-#        self.socket.close()
-#        self.on_disconnect()
-#
-#    def on_connect(self): pass
-#    def on_disconnect(self): pass
-#    def on_message(self, data): pass
-#
-#    def send(self, data):
-#        self.send_queue.append(data)
 
 class Dispatcher:
     def __init__(self):
