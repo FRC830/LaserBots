@@ -11,7 +11,7 @@ import sys
 import pygame as pg
 pg.joystick.init()
 
-import lib.comm
+import lib.comm as comm
 
 LEFT_Y = 1
 LEFT_X = 0
