@@ -73,11 +73,11 @@ class CarController:
         new_speed = -self.joy.get_axis(LEFT_Y)
         #this is the most the speed can increase by to reach 1.0 in MAX_ACCEL_TIME
         #1.0 represents the maximum possible speed (1.0 for us)
-        max_inc_speed = max_delta_speed(self.MAX_FORWARD_ACCEL)
+        max_inc_speed = self.max_delta_speed(self.MAX_FORWARD_ACCEL)
         if last_speed > 0.0:
-            max_dec_speed = max_delta_speed(self.MAX_BRAKE)
+            max_dec_speed = self.max_delta_speed(self.MAX_BRAKE)
         else:
-            max_dec_speed = max_delta_speed(self.MAX_REVERSE_ACCEL)
+            max_dec_speed = self.max_delta_speed(self.MAX_REVERSE_ACCEL)
         delta_speed = input - self.last_speed
         if delta_speed > max_inc_speed:
             speed = self.last_speed + max_inc_speed
@@ -85,10 +85,10 @@ class CarController:
             speed = self.last_speed - max_dec_speed
         else:
             speed = input
-        if speed > MAX_FORWARD_SPEED:
-            speed = MAX_FORWARD_SPEED
-        elif speed < -MAX_REVERSE_SPEED:
-            speed = -MAX_REVERSE_SPEED
+        if speed > self.MAX_FORWARD_SPEED:
+            speed = self.MAX_FORWARD_SPEED
+        elif speed < -self.MAX_REVERSE_SPEED:
+            speed = -self.MAX_REVERSE_SPEED
         self.last_speed = speed
         return speed
 
@@ -97,7 +97,7 @@ class CarController:
         pg.event.pump()
         if self.joy:
             #negative values are up on the y-axes
-            speed = curve_acceleration(-self.joy.get_axis(LEFT_Y))
+            speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
             turn = self.joy.get_axis(RIGHT_X)
         else:
             speed = 0
