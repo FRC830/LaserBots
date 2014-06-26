@@ -13,6 +13,8 @@ pg.joystick.init()
 
 import lib.comm as comm
 
+#y axes are positive down, negative up
+#x axes are positive left, negative right
 LEFT_Y = 1
 LEFT_X = 0
 RIGHT_Y = 3
@@ -99,10 +101,12 @@ class CarController:
             #negative values are up on the y-axes
             speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
             turn = self.joy.get_axis(RIGHT_X)
+            fire = self.joy.get_button(BUTTON_LB) || self.joy.get_button(BUTTON_RB)
         else:
             speed = 0
             turn = 0
-        self.send({'speed': speed, 'turn': turn})
+            fire = False
+        self.send({'speed': speed, 'turn': turn, 'fire': fire})
 
     def send(self, data):
         self.dispatcher.send_to(self.client, data)
