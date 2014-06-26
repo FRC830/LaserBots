@@ -57,7 +57,7 @@ class Car:
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
-                turn = 90 * (self.joy.get_axis(RIGHT_X)+1)
+                turn = 90 * (turn+1)
                 self.turn_motor.set_angle(turn)
                 print('turn: %f' % turn)
 
