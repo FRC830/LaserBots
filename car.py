@@ -5,6 +5,8 @@
 # this is where all the motor and servo controlling stuff will go eventually
 # each instance of this class corresponds to a car
 
+from __future__ import print_function
+
 import random
 from motors import Victor, Servo
 
@@ -20,7 +22,7 @@ class Car:
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
     def log(self, msg, *args):
-        print(('[Car %i] ' % self.id) + (msg % args))
+        print(('\n[Car %i] ' % self.id) + (msg % args))
 
     # called every tick - sends data to server
     def loop(self):
@@ -53,13 +55,13 @@ class Car:
                 self.update_health(data['health'])
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
-                print('speed: %f' % data['speed'])
+                print('speed: %f' % data['speed'], end='')
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
                 turn = 90 * (turn+1)
                 self.turn_motor.set_angle(turn)
-                print('turn: %f' % turn)
+                print('turn: %f' % turn, end='\r')
 
     def update_health(self, delta):
         self.health += delta
