@@ -101,7 +101,7 @@ class CarController:
             #negative values are up on the y-axes
             speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
             turn = self.joy.get_axis(RIGHT_X)
-            fire = self.joy.get_button(BUTTON_LB) || self.joy.get_button(BUTTON_RB)
+            fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
         else:
             speed = 0
             turn = 0
