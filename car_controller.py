@@ -74,7 +74,7 @@ class CarController:
         #this is the most the speed can increase by to reach 1.0 in MAX_ACCEL_TIME
         #1.0 represents the maximum possible speed (1.0 for us)
         max_inc_speed = self.max_delta_speed(self.MAX_FORWARD_ACCEL)
-        if last_speed > 0.0:
+        if self.last_speed > 0.0:
             max_dec_speed = self.max_delta_speed(self.MAX_BRAKE)
         else:
             max_dec_speed = self.max_delta_speed(self.MAX_REVERSE_ACCEL)
