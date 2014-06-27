@@ -22,7 +22,7 @@ class Car:
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
     def log(self, msg, *args):
-        print(('\n[Car %i] ' % self.id) + (msg % args))
+        print(('[Car %i] ' % self.id) + (msg % args))
 
     # called every tick - sends data to server
     def loop(self):
@@ -54,16 +54,16 @@ class Car:
             if 'health' in data:
                 self.update_health(data['health'])
             if 'fire' in data:
-                print('fire: %i ' % data['fire'], end = '')
+                print('fire: %i ' % data['fire'])
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
-                print('speed: %f' % data['speed'], end='')
+                print('speed: %f' % data['speed'])
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
                 turn = 90 * (turn+1)
                 self.turn_motor.set_angle(turn)
-                print('turn: %f' % turn, end='\r')
+                print('turn: %f' % turn)
 
     def update_health(self, delta):
         self.health += delta
