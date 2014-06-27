@@ -53,17 +53,17 @@ class Car:
                 self.id = data['id']
             if 'health' in data:
                 self.update_health(data['health'])
-            if 'fire' in data:
+            if 'fire' in data and data['fire']:
                 print('fire: %i ' % data['fire'])
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
-                print('speed: %f' % data['speed'])
+#                print('speed: %f' % data['speed'])
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
                 turn = 90 * (turn+1)
                 self.turn_motor.set_angle(turn)
-                print('turn: %f' % turn)
+#                print('turn: %f' % turn)
 
     def update_health(self, delta):
         self.health += delta
