@@ -7,7 +7,7 @@
 
 from __future__ import print_function
 
-import random
+import random, sys
 from motors import Victor, Servo
 
 class Car:
@@ -54,7 +54,8 @@ class Car:
             if 'health' in data:
                 self.update_health(data['health'])
             if 'fire' in data:
-                print('fire!' if data['fire'] else '')
+                print('fire!' if data['fire'] else '     ', end='\r')
+                sys.stdout.flush()
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
 #                print('speed: %f' % data['speed'])
