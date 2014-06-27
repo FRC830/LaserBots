@@ -8,7 +8,7 @@
 from __future__ import print_function
 
 import random, sys
-from motors import Victor, Servo
+from motors import Victor, Servo, Spike
 
 class Car:
     def __init__(self, client):
@@ -21,6 +21,7 @@ class Car:
         
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
+        self.spark_motor = Spike()#pin 13, 14
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -70,4 +71,8 @@ class Car:
         self.health += delta
         self.log("Current health: %i", self.health)
         self.send({'health': self.health})
+        if delta < 0:
+            #car is taking damage, throw sparks
+            self.spark_motor.run_fwd()
+            #control loss sequence
 
