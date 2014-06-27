@@ -54,7 +54,7 @@ class Car:
             if 'health' in data:
                 self.update_health(data['health'])
             if 'fire' in data:
-                print('fire: %b' % data['fire'], end = '')
+                print('fire: %i ' % data['fire'], end = '')
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
                 print('speed: %f' % data['speed'], end='')
