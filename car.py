@@ -32,7 +32,7 @@ class Car:
         if random.randint(1, 10) == 1:
             self.hits += 1
             data['hit_car'] = True
-            self.log("I hit a car! Hits: %i", self.hits)
+#            self.log("I hit a car! Hits: %i", self.hits)
         self.send(data)
     def send(self, data):
         self.client.send(data)
@@ -53,8 +53,8 @@ class Car:
                 self.id = data['id']
             if 'health' in data:
                 self.update_health(data['health'])
-            if 'fire' in data and data['fire']:
-                print('fire: %i ' % data['fire'])
+            if 'fire' in data:
+                print('fire!' if data['fire'] else '')
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
 #                print('speed: %f' % data['speed'])
