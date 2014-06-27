@@ -52,4 +52,23 @@ class Servo(object):
     def set_duty_cycle(self, dc):
         """for testing/internal use only"""
         self.servo.ChangeDutyCycle(dc)
-        
+
+class Spike(object):
+    def __init__(self, pin1=13, pin2=14):
+        """pin1 = white/signal | pin2 = red/power"""
+        self.pin1 = pin1
+        self.pin2 = pin2
+        gpio.setup(pin1 , gpio.OUT)
+        gpio.setup(pin2 , gpio.OUT)
+    def run_fwd(self):
+        #run spike in one direction "forward"
+        gpio.output(self.pin1, True)
+        gpio.output(self.pin2, False)
+    def run_bwd(self):
+        #run spike in other direction
+        gpio.output(self.pin1, False)
+        gpio.output(self.pin2, True)
+    def stop(self):
+        #stop spike output
+        gpio.output(self.pin1, False)
+        gpio.output(self.pin2, False)
