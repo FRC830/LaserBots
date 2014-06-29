@@ -25,8 +25,11 @@ class Victor(object):
             exit()
         if speed < -1.0:
             speed = -1.0
-
-        self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
+	
+	if speed == 0:
+	    self.set_duty_cycle(0)
+	else:
+            self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
         #0 ->13.9
         #-1->20
         #1 ->5
@@ -43,7 +46,11 @@ class Servo(object):
         self.servo.start(self.angle_to_dc(90))#starting duty cycle
     def set_angle(self, angle):
         """sets duty cycle based on an angle"""
-        self.angle = angle
+        if angle>180:
+		angle = 180
+	if angle<0:
+		angle = 0
+	self.angle = angle
         pulse = self.angle_to_dc(self.angle)
         self.set_duty_cycle(pulse)
     def angle_to_dc(self, angle):
@@ -54,12 +61,12 @@ class Servo(object):
         self.servo.ChangeDutyCycle(dc)
 
 class Spike(object):
-    def __init__(self, pin1=13, pin2=14):
+    def __init__(self, pin1=13, pin2=15):
         """pin1 = white/signal | pin2 = red/power"""
         self.pin1 = pin1
         self.pin2 = pin2
-        gpio.setup(pin1 , gpio.OUT)
-        gpio.setup(pin2 , gpio.OUT)
+        gpio.setup(self.pin1 , gpio.OUT)
+        gpio.setup(self.pin2 , gpio.OUT)
     def run_fwd(self):
         #run spike in one direction "forward"
         gpio.output(self.pin1, True)
