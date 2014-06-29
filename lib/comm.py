@@ -21,7 +21,7 @@ SOCKET_CLOSED = (errno.EBADF, errno.EPIPE, errno.ECONNRESET)
 SOCKET_NO_DATA = (errno.EAGAIN, )
 
 def encode_message(data):
-    return zlib.compress(pickle.dumps(data, 2))
+    return zlib.compress(pickle.dumps(data, 2))  # Python 2/3-compatible
 
 def decode_message(data):
     return pickle.loads(zlib.decompress(data))
@@ -83,6 +83,16 @@ class SocketConnection(threading.Thread):
     def close(self):
         self.disconnect = True
 
+class ClientHandlerDispatcher(threading.Thread):
+    """ Accepts incoming server connections """
+    def __init__(self, server):
+        super(ClientHandlerDispatcher, self).__init__()
+        self.server = server
+
+    def run(self):
+        while not self.server.disconnect:
+            ClientHandler(self.server, *self.server.socket.accept()).start()
+
 class Server:
     """ Basic socket server """
     def __init__(self, host, port):
@@ -101,8 +111,9 @@ class Server:
         }
 
     def serve_forever(self):
+        ClientHandlerDispatcher(self).start()
         while not self.disconnect:
-            ClientHandler(self, *self.socket.accept()).start()
+            time.sleep(TICK_INTERVAL)
 
     def send_message(self, msg, clients):
         for c in clients:
