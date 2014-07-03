@@ -11,6 +11,10 @@ import sys
 import pygame as pg
 pg.joystick.init()
 
+import lib.comm as comm
+
+#y axes are positive down, negative up
+#x axes are positive left, negative right
 LEFT_Y = 1
 LEFT_X = 0
 RIGHT_Y = 3
@@ -31,9 +35,23 @@ RIGHT_STICK = 9
 
 
 class CarController:
+    #these constants are seconds it takes to go from zero to full speed
+    #or from full speed to zero for braking
+    #limit on acceleration forwards
+    MAX_FORWARD_ACCEL = 3.0
+    #limit on braking speed
+    MAX_BRAKE = 1.0
+    #limit on acceleration backwards
+    MAX_REVERSE_ACCEL = 3.0
+    
+    #these constants are the max value (from 0.0 to 1.0) allowed for speeds
+    MAX_FORWARD_SPEED = 0.8
+    #leave these positive, we'll make it negative later
+    MAX_REVERSE_SPEED = 0.5
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
         self.joy = None
+        self.last_speed = 0.0
         self.client, self.dispatcher = client, dispatcher
         self.id = joy_id
         self.send({'id': self.id})
@@ -43,19 +61,52 @@ class CarController:
             self.joy.init()
         else:
             print('Joystick %i not detected' % (joy_id))
+            
+    def max_delta_speed(self, max_accel):
+        return 1.0 / (max_accel * comm.TICK_INTERVAL)
+    
+            
+    def curve_accel(self, input):
+        """
+        Limits acceleration based on the acceleration constants.
+        input is the target speed taken from the controller, from -1.0 to 1.0
+        returns the new speed from -1.0 to 1.0
+        """
+        new_speed = -self.joy.get_axis(LEFT_Y)
+        #this is the most the speed can increase by to reach 1.0 in MAX_ACCEL_TIME
+        #1.0 represents the maximum possible speed (1.0 for us)
+        max_inc_speed = self.max_delta_speed(self.MAX_FORWARD_ACCEL)
+        if self.last_speed > 0.0:
+            max_dec_speed = self.max_delta_speed(self.MAX_BRAKE)
+        else:
+            max_dec_speed = self.max_delta_speed(self.MAX_REVERSE_ACCEL)
+        delta_speed = input - self.last_speed
+        if delta_speed > max_inc_speed:
+            speed = self.last_speed + max_inc_speed
+        elif delta_speed < -max_dec_speed:
+            speed = self.last_speed - max_dec_speed
+        else:
+            speed = input
+        if speed > self.MAX_FORWARD_SPEED:
+            speed = self.MAX_FORWARD_SPEED
+        elif speed < -self.MAX_REVERSE_SPEED:
+            speed = -self.MAX_REVERSE_SPEED
+        self.last_speed = speed
+        return speed
 
     # the main loop calls this every cycle
     def loop(self):
         pg.event.pump()
         if self.joy:
             #negative values are up on the y-axes
-            speed = -self.joy.get_axis(LEFT_Y)
-            #change joystick -1 -> 1 into servo 0 -> 180
-            turn = 90 * (self.joy.get_axis(RIGHT_X)+1)
+            speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
+            turn = self.joy.get_axis(RIGHT_X)
+            fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
         else:
             speed = 0
-            turn = 90
-        self.send({'speed': speed, 'turn': turn})
+            turn = 0
+            fire = False
+        self.send({'speed': speed, 'turn': turn, 'fire': fire})
 
     def send(self, data):
         self.dispatcher.send_to(self.client, data)

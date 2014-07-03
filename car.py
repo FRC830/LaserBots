@@ -5,8 +5,10 @@
 # this is where all the motor and servo controlling stuff will go eventually
 # each instance of this class corresponds to a car
 
-import random
-from motors import Victor, Servo
+from __future__ import print_function
+
+import random, sys
+from components import Victor, Servo, Transistor, LineBreak
 
 class Car:
     def __init__(self, client):
@@ -19,6 +21,7 @@ class Car:
         
         self.drive_motor = Victor()  # pin 12
         self.turn_motor = Servo()    # pin 11
+        self.spark_motor = Transistor()#pin 13
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -30,7 +33,7 @@ class Car:
         if random.randint(1, 10) == 1:
             self.hits += 1
             data['hit_car'] = True
-            self.log("I hit a car! Hits: %i", self.hits)
+#            self.log("I hit a car! Hits: %i", self.hits)
         self.send(data)
     def send(self, data):
         self.client.send(data)
@@ -51,15 +54,25 @@ class Car:
                 self.id = data['id']
             if 'health' in data:
                 self.update_health(data['health'])
+            if 'fire' in data:
+                print('fire!' if data['fire'] else '     ', end='\r')
+                sys.stdout.flush()
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
-                print('speed: %f' % data['speed'])
+#                print('speed: %f' % data['speed'])
             if 'turn' in data:
-                self.turn_motor.set_angle(data['turn'])
-                print('turn: %f' % data['turn'])
+                turn = data['turn']
+                #change joystick -1 -> 1 into servo 0 -> 180
+                turn = 90 * (turn+1)
+                self.turn_motor.set_angle(turn)
+#                print('turn: %f' % turn)
 
     def update_health(self, delta):
         self.health += delta
         self.log("Current health: %i", self.health)
         self.send({'health': self.health})
+        if delta < 0:
+            #car is taking damage, throw sparks
+            self.spark_motor.set(1)
+            #control loss sequence
 
