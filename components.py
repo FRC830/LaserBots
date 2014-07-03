@@ -79,3 +79,16 @@ class Spike(object):
         #stop spike output
         gpio.output(self.pin1, False)
         gpio.output(self.pin2, False)
+
+class LineBreak(object):
+    """a line break sensor"""
+    #http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/
+    def __init__(self, DI = 16):
+        """default to digital input on pin 16 (GPIO pin 23)"""
+        self.pin = DI
+        gpio.setup(self.pin, gpio.IN, pull_up_down = gpio.PUD_DOWN)
+    def get(self):
+        return gpio.input(self.pin)
+
+def cleanup():
+    gpio.cleanup()
