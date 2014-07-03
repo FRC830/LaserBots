@@ -1,4 +1,8 @@
-import RPi.GPIO as gpio
+try:
+    import RPi.GPIO as gpio
+except ImportError:
+    print('Warning: GPIO unavailable, using fallback dummy.gpio')
+    from lib.dummy import gpio
 gpio.setmode(gpio.BOARD)
 
 # hopefully this will run on the Pi and control victors and Servos
@@ -25,11 +29,11 @@ class Victor(object):
             exit()
         if speed < -1.0:
             speed = -1.0
-	
+
 	if speed == 0:
 	    self.set_duty_cycle(0)
 	else:
-            self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
+	    self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
         #0 ->13.9
         #-1->20
         #1 ->5
