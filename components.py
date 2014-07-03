@@ -33,7 +33,7 @@ class Victor(object):
         if speed == 0:
             self.set_duty_cycle(0)
         else:
-	    self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
+            self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
         #0 ->13.9
         #-1->20
         #1 ->5
