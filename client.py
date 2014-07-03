@@ -52,5 +52,7 @@ if not connected:
     sys.exit(1)
 try:
     client.listen_forever()
+except KeyboardInterrupt:
+    pass
 finally:
     client.close()
