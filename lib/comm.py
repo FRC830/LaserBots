@@ -189,12 +189,6 @@ class Client(SocketConnection):
             for msg in received:
                 self.on_message(msg)
 
-    #def tick(self):
-    #    self.on_loop()
-    #    received = self.recv()
-    #    for msg in received:
-    #        self.on_message(msg)
-
     def on_connect(self): pass
     def on_disconnect(self): pass
     def on_message(self, data): pass
