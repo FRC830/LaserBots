@@ -90,5 +90,13 @@ class LineBreak(object):
     def get(self):
         return gpio.input(self.pin)
 
+class Transistor(object):
+    """basic transistor"""
+    def __init__(self, pin = 13):
+        self.pin = pin
+        gpio.setup(self.pin, gpio.OUT)
+    def set(self, val):
+        gpio.output(self.pin, bool(val))
+
 def cleanup():
     gpio.cleanup()
