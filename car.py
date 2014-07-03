@@ -7,7 +7,7 @@
 
 from __future__ import print_function
 
-import random, sys
+import random, sys, time
 from components import Victor, Servo, Transistor, LineBreak
 
 class Car:
@@ -16,12 +16,15 @@ class Car:
         self.hits = 0
         self.health = 100
         self.id = -1
+        self.firing = False
+        self.last_fire_time = 0.0
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
         
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
-        self.spark_motor = Transistor()#pin 13
+        self.spark_motor = Transistor(13)#pin 13
+        self.line_break = LineBreak() #pin 16, transistor pin 18
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -30,10 +33,9 @@ class Car:
         if self.game_over:
             return
         data = {}
-        if random.randint(1, 10) == 1:
-            self.hits += 1
-            data['hit_car'] = True
-#            self.log("I hit a car! Hits: %i", self.hits)
+        if firing:
+            data['hit_car'] = line_break.broken()
+            #self.log("I hit a car! Hits: %i", self.hits)
         self.send(data)
     def send(self, data):
         self.client.send(data)
@@ -55,7 +57,13 @@ class Car:
             if 'health' in data:
                 self.update_health(data['health'])
             if 'fire' in data:
-                print('fire!' if data['fire'] else '     ', end='\r')
+                if data['fire'] and not self.firing:
+                    self.last_fire_time = time.time
+                self.firing = data['fire']
+                if time.time() - self.last_fire_time > 1.0:
+                    self.firing = False
+                self.line_break.set(self.firing)
+                print('fire!' if self.firing else '     ', end='\r')
                 sys.stdout.flush()
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
