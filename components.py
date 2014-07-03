@@ -1,6 +1,10 @@
 import RPi.GPIO as gpio
 gpio.setmode(gpio.BOARD)
 
+import os
+if os.geteuid() != 0:
+    print('WARNING: Not root')
+
 # hopefully this will run on the Pi and control victors and Servos
 class Victor(object):
     def __init__(self, pin = 12, freq = 100):
