@@ -26,11 +26,11 @@ class Victor(object):
     def set_speed(self, speed):
         if speed > 1.0:
             speed = 1.0
-            exit()
         if speed < -1.0:
             speed = -1.0
 
-        if speed == 0:
+        if speed > -0.1 and speed < 0.1:
+            #zero the value
             self.set_duty_cycle(0)
         else:
             self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
