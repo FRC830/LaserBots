@@ -37,6 +37,7 @@ RIGHT_STICK = 9
 class CarController:
     #these constants are seconds it takes to go from zero to full speed
     #or from full speed to zero for braking
+    #so greater numbers => slower acceleration/deceleration
     #limit on acceleration forwards
     MAX_FORWARD_ACCEL = 3.0
     #limit on braking speed
@@ -46,7 +47,8 @@ class CarController:
     
     #these constants are the max value (from 0.0 to 1.0) allowed for speeds
     MAX_FORWARD_SPEED = 0.8
-    #leave these positive, we'll make it negative later
+    #all of these should be positive, even for reverse speeds
+    #we'll negate the constants as appropriate when we use them
     MAX_REVERSE_SPEED = 0.5
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
@@ -63,6 +65,9 @@ class CarController:
             print('Joystick %i not detected' % (joy_id))
             
     def max_delta_speed(self, max_accel):
+        #this gives the most the speed can increase by in one cycle
+        #so that it takes max_accel seconds to reach full speed
+        #1.0 in this equation represents full speed
         return 1.0 / (max_accel * comm.TICK_INTERVAL)
     
             
