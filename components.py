@@ -5,6 +5,10 @@ except ImportError:
     from lib.dummy import gpio
 gpio.setmode(gpio.BOARD)
 
+import os
+if os.geteuid() != 0:
+    print('WARNING: Not root')
+
 # hopefully this will run on the Pi and control victors and Servos
 class Victor(object):
     def __init__(self, pin = 12, freq = 100):
@@ -84,23 +88,29 @@ class Spike(object):
         gpio.output(self.pin1, False)
         gpio.output(self.pin2, False)
 
-class LineBreak(object):
-    """a line break sensor"""
-    #http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/
-    def __init__(self, DI = 16):
-        """default to digital input on pin 16 (GPIO pin 23)"""
-        self.pin = DI
-        gpio.setup(self.pin, gpio.IN, pull_up_down = gpio.PUD_DOWN)
-    def get(self):
-        return gpio.input(self.pin)
-
 class Transistor(object):
     """basic transistor"""
-    def __init__(self, pin = 13):
+    def __init__(self, pin):
         self.pin = pin
         gpio.setup(self.pin, gpio.OUT)
     def set(self, val):
         gpio.output(self.pin, bool(val))
+
+
+class LineBreak(object):
+    """a line break sensor"""
+    #http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/
+    def __init__(self, input_pin = 16, control_pin = 18):
+        """default to digital input on pin 16 (GPIO pin 23)"""
+        self.pin = input_pin
+        gpio.setup(self.pin, gpio.IN, pull_up_down = gpio.PUD_DOWN)
+        self.transistor = Transistor(control_pin)
+    def set(self, val):
+        self.transistor.set(val)
+    def broken(self):
+        #returns true if the line is broken (probably)
+        return gpio.input(self.pin)
+
 
 def cleanup():
     gpio.cleanup()
