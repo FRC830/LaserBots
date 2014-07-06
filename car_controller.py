@@ -8,6 +8,7 @@
 #then take input from the car and give it as input to data_received()
 
 import sys
+import time
 import pygame as pg
 pg.joystick.init()
 
@@ -114,20 +115,21 @@ class CarController:
             speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
             turn = self.joy.get_axis(RIGHT_X)
             fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
+            if self.firing == CarController.ENUM_NOT_FIRING:
+                    if fire:
+                        self.last_fire_time = time.time()
+                        self.firing = CarController.ENUM_FIRING
             if self.firing == CarController.ENUM_FIRING:
                 if time.time() - self.last_fire_time > 1.0:
                     self.firing = CarController.ENUM_WAITING
-                else:
-                    data['fire'] = fire
             if self.firing == CarController.ENUM_WAITING:
                 if time.time() - self.last_fire_time > 2.0:
                     self.firing = CarController.ENUM_NOT_FIRING
-            
         else:
             speed = 0
             turn = 0
             fire = False
-        self.send({'speed': speed, 'turn': turn, 'fire': fire})
+        self.send({'speed': speed, 'turn': turn, 'fire': self.firing==CarController.ENUM_FIRING})
 
     def send(self, data):
         self.dispatcher.send_to(self.client, data)
