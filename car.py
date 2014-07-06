@@ -67,7 +67,7 @@ class Car:
                 #change joystick -1 -> 1 into servo 0 -> 180
                 turn = 90 * (turn+1)
                 self.turn_motor.set_angle(turn)
-                print('turn: %f' % turn)
+#                print('turn: %f' % turn)
 
     def update_health(self, delta):
         self.health += delta
