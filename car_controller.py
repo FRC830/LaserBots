@@ -50,10 +50,17 @@ class CarController:
     #all of these should be positive, even for reverse speeds
     #we'll negate the constants as appropriate when we use them
     MAX_REVERSE_SPEED = 0.5
+
+    ENUM_NOT_FIRING = 0
+    ENUM_FIRING = 1
+    ENUM_WAITING = 2
+    
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
         self.joy = None
         self.last_speed = 0.0
+        self.last_fire_time = 0.0
+        self.firing = CarController.ENUM_NOT_FIRING
         self.client, self.dispatcher = client, dispatcher
         self.id = joy_id
         self.send({'id': self.id})
@@ -107,6 +114,15 @@ class CarController:
             speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
             turn = self.joy.get_axis(RIGHT_X)
             fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
+            if self.firing == CarController.ENUM_FIRING:
+                if time.time() - self.last_fire_time > 1.0:
+                    self.firing = CarController.ENUM_WAITING
+                else:
+                    data['fire'] = fire
+            if self.firing == CarController.ENUM_WAITING:
+                if time.time() - self.last_fire_time > 2.0:
+                    self.firing = CarController.ENUM_NOT_FIRING
+            
         else:
             speed = 0
             turn = 0
