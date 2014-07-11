@@ -54,13 +54,18 @@ class CarController:
 
     ENUM_NOT_FIRING = 0
     ENUM_FIRING = 1
-    ENUM_WAITING = 2
+    ENUM_CHARGING = 2
+
+    FIRE_TIME = 0.25 #seconds
+    CHARGE_TIME = 2.0 #seconds
     
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
         self.joy = None
         self.last_speed = 0.0
-        self.last_fire_time = 0.0
+        self.last_fire_time = 0.0 #time of we last started firing\
+        self.charge_start_time = time.time() #time we last started charging; value should be changed before use
+        self.charge_remaining = CHARGE_TIME #seconds
         self.firing = CarController.ENUM_NOT_FIRING
         self.client, self.dispatcher = client, dispatcher
         self.id = joy_id
@@ -115,21 +120,35 @@ class CarController:
             speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
             turn = self.joy.get_axis(RIGHT_X)
             fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
-            if self.firing == CarController.ENUM_NOT_FIRING:
-                    if fire:
-                        self.last_fire_time = time.time()
-                        self.firing = CarController.ENUM_FIRING
+            #make each fire last for a certain amount of time
+            #and limit the total amount of shots until you must recharge
             if self.firing == CarController.ENUM_FIRING:
-                if time.time() - self.last_fire_time > 1.0:
-                    self.firing = CarController.ENUM_WAITING
-            if self.firing == CarController.ENUM_WAITING:
-                if time.time() - self.last_fire_time > 2.0:
+                if time.time() - self.last_fire_time > FIRE_TIME:
                     self.firing = CarController.ENUM_NOT_FIRING
+            if self.firing == CarController.ENUM_NOT_FIRING:
+                if fire and self.charge_remaining > FIRE_TIME:
+                    self.charge_remaining -= FIRE_TIME
+                    self.last_fire_time = time.time()
+                    self.firing = CarController.ENUM_FIRING
+                    start_fire = True
+                elif self.charge_remaining < FIRE_TIME:
+                    self.firing = CarController.ENUM_CHARGING
+            if self.firing == CarController.ENUM_CHARGING:
+                self.charge_remaining = time.time() - self.charge_start_time
+                if self.charge_remaining > CHARGE_TIME:
+                    self.charge_remaing = CHARGE_TIME
+                    self.firing = CarController.ENUM_NOT_FIRING
+                    
         else:
             speed = 0
             turn = 0
             fire = False
-        self.send({'speed': speed, 'turn': turn, 'fire': self.firing==CarController.ENUM_FIRING})
+        data = {'speed': speed, 'turn': turn, 'fire': self.firing==CarController.ENUM_FIRING}
+        if self.firing == CarController.ENUM_FIRING:
+            data['fire'] = True
+        if start_fire:
+            data['start_fire'] = True
+        self.send(data)
 
     def send(self, data):
         self.dispatcher.send_to(self.client, data)
