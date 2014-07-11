@@ -21,7 +21,8 @@ class Car:
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
 
-        laser_sound = pg.mixer.Sound("laser.wav")
+        pg.init()
+        self.laser_sound = pg.mixer.Sound("laser.wav")
         
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
@@ -63,8 +64,8 @@ class Car:
                 print('fire!' if self.firing else '     ', end='\r')
                 sys.stdout.flush()
             if 'start_fire' in data:
-                laser_sound.stop()
-                laser_sound.play()
+#                self.laser_sound.stop()
+                self.laser_sound.play()
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
 #                print('speed: %f' % data['speed'])
