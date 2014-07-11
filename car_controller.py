@@ -140,12 +140,10 @@ class CarController:
                     if self.charge_remaining > CarController.CHARGE_TIME:
                         self.charge_remaing = CarController.CHARGE_TIME
                         self.firing = CarController.ENUM_NOT_FIRING
-                    
         else:
             speed = 0
             turn = 0
-            fire = False
-        data = {'speed': speed, 'turn': turn, 'fire': self.firing==CarController.ENUM_FIRING}
+        data = {'speed': speed, 'turn': turn}
         if self.firing == CarController.ENUM_FIRING:
             data['fire'] = True
         if start_fire:
