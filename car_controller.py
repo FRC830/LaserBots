@@ -56,9 +56,9 @@ class CarController:
     ENUM_FIRING = 1
     ENUM_CHARGING = 2
 
-    FIRE_TIME = 0.25 #seconds
-    CHARGE_TIME = 2.0 #seconds to recharge from zero to full
-    FIRE_CHARGE = 0.5 #amount of charge taken by each shot
+    FIRE_TIME = 0.5 #seconds
+    CHARGE_TIME = 10.0 #seconds to recharge from zero to full
+    FIRE_CHARGE = 2.5 #amount of charge taken by each shot
     
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
@@ -126,6 +126,7 @@ class CarController:
             #make each fire last for a certain amount of time
             #and limit the total amount of shots until you must recharge
             #also tell the client if we're beginning a new fire because that's when it'll play the sound effect
+            #print("%i; %f at %f" % (self.firing, self.charge_remaining, time.time()))
             if self.firing == CarController.ENUM_NOT_FIRING:
                 if fire and self.charge_remaining >= CarController.FIRE_CHARGE:
                     self.charge_remaining -= CarController.FIRE_CHARGE
@@ -136,7 +137,6 @@ class CarController:
                     self.charge_remaining = self.charge_remaining + (time.time() - self.charge_start_time)
                     if self.charge_remaining > CarController.CHARGE_TIME:
                         self.charge_remaining = CarController.CHARGE_TIME
-                        self.firing = CarController.ENUM_NOT_FIRING
             if self.firing == CarController.ENUM_FIRING:
                 if time.time() - self.last_fire_time > CarController.FIRE_TIME:
                     self.firing = CarController.ENUM_NOT_FIRING

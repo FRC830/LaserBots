@@ -60,8 +60,7 @@ class Car:
                 self.update_health(data['health'])
             if 'fire' in data and data['fire']:
                 self.firing = data['fire']
-                self.line_break.set(self.firing)
-                print('fire!' if self.firing else '     ', end='\r')
+                print('fire!' if self.firing else 'no fire')
                 sys.stdout.flush()
             else:
                 self.firing = False
