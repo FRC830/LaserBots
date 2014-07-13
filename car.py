@@ -58,11 +58,13 @@ class Car:
                 self.id = data['id']
             if 'health' in data:
                 self.update_health(data['health'])
-            if 'fire' in data:
+            if 'fire' in data and data['fire']:
                 self.firing = data['fire']
                 self.line_break.set(self.firing)
                 print('fire!' if self.firing else '     ', end='\r')
                 sys.stdout.flush()
+            else:
+                self.firing = False
             if 'start_fire' in data:
 #                self.laser_sound.stop()
                 self.laser_sound.play()

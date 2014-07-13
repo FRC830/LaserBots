@@ -58,15 +58,16 @@ class CarController:
 
     FIRE_TIME = 0.25 #seconds
     CHARGE_TIME = 2.0 #seconds to recharge from zero to full
-    FIRE_CHARGE = CHARGE_TIME * FIRE_TIME #amount of charge taken by each shot
+    FIRE_CHARGE = 0.5 #amount of charge taken by each shot
     
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
         self.joy = None
         self.last_speed = 0.0
-        self.last_fire_time = 0.0 #time of we last started firing\
-        self.charge_start_time = time.time() #time we last started charging; value should be changed before use
+        self.last_fire_time = 0.0 #time when we last started firing
+        self.charge_start_time = 0.0 #time we last started charging; value should be changed before use
         self.charge_remaining = CarController.CHARGE_TIME #seconds
+        self.last_charge = CarController.CHARGE_TIME
         self.firing = CarController.ENUM_NOT_FIRING
         self.client, self.dispatcher = client, dispatcher
         self.id = joy_id
@@ -116,30 +117,31 @@ class CarController:
     # the main loop calls this every cycle
     def loop(self):
         pg.event.pump()
+        start_fire = False
         if self.joy:
             #negative values are up on the y-axes
-            speed = self.curve_accel(-self.joy.get_axis(LEFT_Y))
-            turn = self.joy.get_axis(RIGHT_X)
+            speed = self.curve_accel(-self.joy.get_axis(RIGHT_Y))
+            turn = self.joy.get_axis(LEFT_X)
             fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
             #make each fire last for a certain amount of time
             #and limit the total amount of shots until you must recharge
             #also tell the client if we're beginning a new fire because that's when it'll play the sound effect
-            start_fire = False
-            if self.firing == CarController.ENUM_FIRING:
-                if time.time() - self.last_fire_time > CarController.FIRE_TIME:
-                    self.firing = CarController.ENUM_NOT_FIRING
-                    self.charge_start_time = time.time()
             if self.firing == CarController.ENUM_NOT_FIRING:
-                if fire and self.charge_remaining > CarController.FIRE_CHARGE:
+                if fire and self.charge_remaining >= CarController.FIRE_CHARGE:
                     self.charge_remaining -= CarController.FIRE_CHARGE
                     self.last_fire_time = time.time()
                     self.firing = CarController.ENUM_FIRING
                     start_fire = True
                 else:
-                    self.charge_remaining = time.time() - self.charge_start_time
+                    self.charge_remaining = self.charge_remaining + (time.time() - self.charge_start_time)
                     if self.charge_remaining > CarController.CHARGE_TIME:
-                        self.charge_remaing = CarController.CHARGE_TIME
+                        self.charge_remaining = CarController.CHARGE_TIME
                         self.firing = CarController.ENUM_NOT_FIRING
+            if self.firing == CarController.ENUM_FIRING:
+                if time.time() - self.last_fire_time > CarController.FIRE_TIME:
+                    self.firing = CarController.ENUM_NOT_FIRING
+                    self.charge_start_time = time.time()
+                    self.last_charge = self.charge_remaining
         else:
             speed = 0
             turn = 0
