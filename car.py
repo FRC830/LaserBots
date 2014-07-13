@@ -57,7 +57,13 @@ class Car:
             if 'id' in data:
                 self.id = data['id']
             if 'health' in data:
-                self.update_health(data['health'])
+                if data['health'] - self.health < 0:
+                    #car is taking damage, throw sparks
+                    self.spark_motor.set(1)
+                    #control loss sequence
+
+                    self.health = data['health']               
+                    self.log("Current health: %i", self.health)
             if 'fire' in data and data['fire']:
                 self.firing = data['fire']
                 print('fire!' if self.firing else 'no fire')
@@ -79,10 +85,6 @@ class Car:
 
     def update_health(self, delta):
         self.health += delta
-        self.log("Current health: %i", self.health)
         self.send({'health': self.health})
-        if delta < 0:
-            #car is taking damage, throw sparks
-            self.spark_motor.set(1)
-            #control loss sequence
+
 

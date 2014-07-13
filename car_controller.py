@@ -52,23 +52,21 @@ class CarController:
     #we'll negate the constants as appropriate when we use them
     MAX_REVERSE_SPEED = 0.5
 
-    ENUM_NOT_FIRING = 0
-    ENUM_FIRING = 1
-    ENUM_CHARGING = 2
-
-    FIRE_TIME = 0.5 #seconds
-    CHARGE_TIME = 10.0 #seconds to recharge from zero to full
-    FIRE_CHARGE = 2.5 #amount of charge taken by each shot
+    MAX_CHARGE = 5.0 #time after which charging power has no effect
+    FIRE_TIME = 0.25 #time a single shot lasts
     
     def __init__(self, joy_id, client, dispatcher):
         pg.init()
         self.joy = None
+        self.health = 50
+        self.other_car_health = 50 #it's easier for each car to keep track of the other's health
         self.last_speed = 0.0
-        self.last_fire_time = 0.0 #time when we last started firing
-        self.charge_start_time = 0.0 #time we last started charging; value should be changed before use
-        self.charge_remaining = CarController.CHARGE_TIME #seconds
-        self.last_charge = CarController.CHARGE_TIME
-        self.firing = CarController.ENUM_NOT_FIRING
+        self.last_fire_time = time.time() #time when we last started firing
+        self.charge_start_time = time.time() #time we last started charging
+        self.charge = 0.0
+        self.last_shot_charge = 0.0
+        self.charging = False
+        self.firing = False
         self.client, self.dispatcher = client, dispatcher
         self.id = joy_id
         self.send({'id': self.id})
@@ -117,39 +115,40 @@ class CarController:
     # the main loop calls this every cycle
     def loop(self):
         pg.event.pump()
-        start_fire = False
+        data = {}
         if self.joy:
             #negative values are up on the y-axes
-            speed = self.curve_accel(-self.joy.get_axis(RIGHT_Y))
-            turn = self.joy.get_axis(LEFT_X)
-            fire = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
+            data['speed'] = self.curve_accel(-self.joy.get_axis(RIGHT_Y))
+            data['turn'] = self.joy.get_axis(LEFT_X)
+            charge_pressed = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
             #make each fire last for a certain amount of time
-            #and limit the total amount of shots until you must recharge
-            #also tell the client if we're beginning a new fire because that's when it'll play the sound effect
-            #print("%i; %f at %f" % (self.firing, self.charge_remaining, time.time()))
-            if self.firing == CarController.ENUM_NOT_FIRING:
-                if fire and self.charge_remaining >= CarController.FIRE_CHARGE:
-                    self.charge_remaining -= CarController.FIRE_CHARGE
-                    self.last_fire_time = time.time()
-                    self.firing = CarController.ENUM_FIRING
-                    start_fire = True
+            #charge while button pressed
+            if not self.firing:
+                if charge_pressed:
+                    if not self.charging:
+                        self.charge_start_time = time.time()
+                        self.charging = True
+                    else:
+                        self.charge = time.time() - self.charge_start_time
+                        if self.charge > CarController.MAX_CHARGE:
+                            self.charge = CarController.MAX_CHARGE
                 else:
-                    self.charge_remaining = self.charge_remaining + (time.time() - self.charge_start_time)
-                    if self.charge_remaining > CarController.CHARGE_TIME:
-                        self.charge_remaining = CarController.CHARGE_TIME
-            if self.firing == CarController.ENUM_FIRING:
+                    if self.charge > 0.0:
+                        #fire a shot
+                        self.firing = True
+                        data['start_fire'] = True
+                        self.last_fire_time = time.time()
+                        self.charge_of_shot = self.charge
+                        self.charge = 0.0
+
+            if self.firing:
+                data['fire'] = True
                 if time.time() - self.last_fire_time > CarController.FIRE_TIME:
-                    self.firing = CarController.ENUM_NOT_FIRING
-                    self.charge_start_time = time.time()
-                    self.last_charge = self.charge_remaining
+                    self.firing = False
         else:
-            speed = 0
-            turn = 0
-        data = {'speed': speed, 'turn': turn}
-        if self.firing == CarController.ENUM_FIRING:
-            data['fire'] = True
-        if start_fire:
-            data['start_fire'] = True
+            #no joystick detected, so give reasonable "do nothing" values
+            data['speed'] = 0.0
+            data['turn'] = 0.0
         self.send(data)
 
     def send(self, data):
@@ -170,8 +169,15 @@ class CarController:
     def accept_data(self, data):
         if type(data) == dict:
             if 'hit_car' in data:
-                self.send_to_other({'health': -1})
+                damage = self.last_shot_charge
+                if damage > 0.0 and damage < 0.5:
+                    damage = 0.5
+                self.other_car_health -= damage
+                self.last_shot_charge = 0.0 #zero out charge so shots count once
+                self.send_to_other({'health': self.other_car_health})
+                if self.other_car_health <= 0.0:
+                    self.send_to_all({'game_over': True, 'winner': self.id})
+                    
             if 'health' in data:
-                health = data['health']
-                if health <= 0:
-                    self.send_to_all({'game_over': True, 'winner': 1 - self.id})
+                self.health = data['health']
+                self.send({'health': data['health']})
