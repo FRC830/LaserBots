@@ -27,7 +27,7 @@ class Car:
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
         self.spark_motor = Transistor(13)#pin 13
-        self.line_break = LineBreak() #pin 16, transistor pin 18
+        self.line_break = LineBreak() #input pin 16, transistor pin 18
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -44,7 +44,7 @@ class Car:
 
     # takes the data sent by the server
     # which will be processed user input
-    # this is the equivalent of our TeleopInit(), kind of
+    # this is the equivalent of our TeleopPeriodic(), kind of
     # where we run all the motors and everything
     def accept_data(self, data):
         if type(data) == dict:
@@ -67,7 +67,6 @@ class Car:
             if 'fire' in data and data['fire']:
                 self.firing = data['fire']
                 print('fire!' if self.firing else 'no fire')
-                sys.stdout.flush()
             else:
                 self.firing = False
             if 'start_fire' in data:

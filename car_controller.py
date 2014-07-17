@@ -41,10 +41,12 @@ class CarController:
     #so greater numbers => slower acceleration/deceleration
     #limit on acceleration forwards
     MAX_FORWARD_ACCEL = 3.0
+    #how fast we slow down when not actively braking
+    DRIFT_BRAKE = 2.0
     #limit on braking speed
     MAX_BRAKE = 1.0
     #limit on acceleration backwards
-    MAX_REVERSE_ACCEL = 3.0
+    MAX_REVERSE_ACCEL = 5.0
     
     #these constants are the max value (from 0.0 to 1.0) allowed for speeds
     MAX_FORWARD_SPEED = 0.8
@@ -60,6 +62,10 @@ class CarController:
         self.joy = None
         self.health = 50
         self.other_car_health = 50 #it's easier for each car to keep track of the other's health
+
+        self.cycle_length = comm.TICK_INTERVAL  #not sure how accurate TICK_INTERVAL is
+        self.last_time = time.time()            #tracking manually instead
+        
         self.last_speed = 0.0
         self.last_fire_time = time.time() #time when we last started firing
         self.charge_start_time = time.time() #time we last started charging
@@ -81,10 +87,10 @@ class CarController:
         #this gives the most the speed can increase by in one cycle
         #so that it takes max_accel seconds to reach full speed
         #1.0 in this equation represents full speed
-        return 1.0 / (max_accel * comm.TICK_INTERVAL)
+        return (1.0 * self.cycle_length) / max_accel
     
             
-    def curve_accel(self, input):
+    def curve_accel(self, input, brake=False):
         """
         Limits acceleration based on the acceleration constants.
         input is the target speed taken from the controller, from -1.0 to 1.0
@@ -93,9 +99,18 @@ class CarController:
         new_speed = -self.joy.get_axis(LEFT_Y)
         #this is the most the speed can increase by to reach 1.0 in MAX_ACCEL_TIME
         #1.0 represents the maximum possible speed (1.0 for us)
-        max_inc_speed = self.max_delta_speed(self.MAX_FORWARD_ACCEL)
+        if self.last_speed < 0.0:
+            if input > 0.0 or brake:
+                max_inc_speed = self.max_delta_speed(self.MAX_BRAKE)
+            else:
+                max_inc_speed = self.max_delta_speed(self.DRIFT_BRAKE)
+        else:
+            max_inc_speed = self.max_delta_speed(self.MAX_FORWARD_ACCEL)
         if self.last_speed > 0.0:
-            max_dec_speed = self.max_delta_speed(self.MAX_BRAKE)
+            if input < 0.0 or brake:
+                max_dec_speed = self.max_delta_speed(self.MAX_BRAKE)
+            else:
+                max_dec_speed = self.max_delta_speed(self.DRIFT_BRAKE)
         else:
             max_dec_speed = self.max_delta_speed(self.MAX_REVERSE_ACCEL)
         delta_speed = input - self.last_speed
@@ -118,7 +133,10 @@ class CarController:
         data = {}
         if self.joy:
             #negative values are up on the y-axes
-            data['speed'] = self.curve_accel(-self.joy.get_axis(RIGHT_Y))
+            if self.joy.get_button(BUTTON_A):
+                data['speed'] = self.curve_accel(0.0, True)
+            else:
+                data['speed'] = self.curve_accel(-self.joy.get_axis(RIGHT_Y))
             data['turn'] = self.joy.get_axis(LEFT_X)
             charge_pressed = self.joy.get_button(BUTTON_LB) or self.joy.get_button(BUTTON_RB)
             #make each fire last for a certain amount of time
@@ -145,11 +163,15 @@ class CarController:
                 data['fire'] = True
                 if time.time() - self.last_fire_time > CarController.FIRE_TIME:
                     self.firing = False
+
+            print("%f %f" % (data['speed'], data['turn']))
         else:
             #no joystick detected, so give reasonable "do nothing" values
             data['speed'] = 0.0
             data['turn'] = 0.0
         self.send(data)
+        self.cycle_length = time.time() - self.last_time
+        self.last_time = time.time()
 
     def send(self, data):
         self.dispatcher.send_to(self.client, data)
@@ -168,7 +190,7 @@ class CarController:
     # which will tell us whether it hit the other car, and possibly other things
     def accept_data(self, data):
         if type(data) == dict:
-            if 'hit_car' in data:
+            if 'hit_car' in data and data['hit_car']:
                 damage = self.last_shot_charge
                 if damage > 0.0 and damage < 0.5:
                     damage = 0.5
