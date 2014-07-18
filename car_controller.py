@@ -125,6 +125,8 @@ class CarController:
         elif speed < -self.MAX_REVERSE_SPEED:
             speed = -self.MAX_REVERSE_SPEED
         self.last_speed = speed
+        if speed < 0.05 and speed > -0.05:
+            speed = 0.0
         return speed
 
     # the main loop calls this every cycle
