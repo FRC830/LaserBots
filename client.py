@@ -38,16 +38,19 @@ class Client(comm.Client):
         print('Disconnected.')
 
 connected = False
-for port in range(PORTS[0], PORTS[1] + 1):
-    try:
-        print('- Trying %s:%i' % (SERVER_IP, port))
-        client = Client((SERVER_IP, port))
-        connected = True
-        break
-    except socket.error as e:
-        print('- Connection failed: %s' % e)
+while not connected:
+    for port in range(PORTS[0], PORTS[1] + 1):
+        try:
+            print('- Trying %s:%i' % (SERVER_IP, port))
+            client = Client((SERVER_IP, port))
+            connected = True
+            break
+        except socket.error as e:
+            print('- Connection failed: %s' % e)
 
-if not connected:
-    print('Fatal: Could not find server.')
-    sys.exit(1)
+    if not connected:
+        print('Could not find server.')
+        print('Trying again in 10 seconds...')
+        time.sleep(10)
+        
 client.listen_forever()
