@@ -1,8 +1,0 @@
-#!/bin/bash
-# Script to run client.py on startup
-# For this to work LaserBots has to be in the /home/pi directory
-# To run on startup, add the filepath (/home/pi/LaserBots/auto_run)
-# to the /etc/rc.local file
-echo "Doing autorun script..."
-#We'll pick a static IP for the server
-sudo python /home/pi/LaserBots/client.py 192.168.134
