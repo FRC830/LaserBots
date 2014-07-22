@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import os, pygame
+import os, pygame, random, sys
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -67,7 +67,7 @@ class GameTimer(object):
         self.width = SCREEN_SIZE[0]
         self.height = 20
         self.clock = clock
-        
+
         pygame.draw.rect(self.bg, self.color, pygame.Rect(self.x,self.y,self.width,self.height))
     def update(self):
         self.time -= (self.clock.get_time())/1000
@@ -80,7 +80,7 @@ def main():
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption('FRC Team 830')
     pygame.mouse.set_visible(1)
-    #create background    
+    #create background
     background_img = pygame.image.load(os.path.join(data_dir, "bg.png")).convert()
     background = pygame.Surface(SCREEN_SIZE)
     background.blit(background_img, (0, 0))
@@ -101,7 +101,24 @@ def main():
     write("Player 2", background, 750, 60, (255,0,0), 50)
 #Main Loop
     going = True
+    ticks = 0
     while going:
+        pixels = []
+        for i in range(random.randint(0, int(ticks/100) ** 2)):
+            pixels.append((
+                (
+                    random.randint(0, background.get_size()[0] - 1),
+                    random.randint(0, background.get_size()[1] - 1)
+                ),
+                (
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                )
+            ))
+        if len(sys.argv) > 1 and sys.argv[1] == 'a':
+            pixels = []
+        ticks += 1
         clock.tick(60)
 
         #Handle Input Events
@@ -116,7 +133,9 @@ def main():
         if pygame.key.get_pressed()[K_w]:
             meter1.fire()
         if pygame.key.get_pressed()[K_UP]:
-            meter2.fire()       
+            meter2.fire()
+        for p in pixels:
+            background.set_at(*p)
         #Draw Everything
         screen.blit(background, (0, 0))
         #allsprites.draw(screen)
