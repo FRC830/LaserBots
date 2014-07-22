@@ -8,26 +8,26 @@
 from __future__ import print_function
 
 import random, sys, time
+import pygame as pg
 from components import Victor, Servo, Transistor, LineBreak
 
 class Car:
-    ENUM_NOT_FIRING = 0
-    ENUM_FIRING = 1
-    ENUM_WAITING = 2
     def __init__(self, client):
         self.client = client
         self.hits = 0
         self.health = 100
         self.id = -1
-        self.firing = Car.ENUM_NOT_FIRING
-        self.last_fire_time = 0.0
+        self.firing = False
         self.game_over = False
         self.send({'init': True, 'type': 'car'})
+
+        pg.init()
+        self.laser_sound = pg.mixer.Sound("laser.wav")
         
         self.drive_motor = Victor()#pin 12
         self.turn_motor = Servo()#pin 11
         self.spark_motor = Transistor(13)#pin 13
-        self.line_break = LineBreak() #pin 16, transistor pin 18
+        self.line_break = LineBreak() #input pin 16, transistor pin 18
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -36,21 +36,15 @@ class Car:
         if self.game_over:
             return
         data = {}
-        if self.firing == Car.ENUM_FIRING:
-            if time.time() - self.last_fire_time > 1.0:
-                self.firing = Car.ENUM_WAITING
-            else:
-                data['hit_car'] = self.line_break.broken()
-        if self.firing == Car.ENUM_WAITING:
-            if time.time() - self.last_fire_time > 2.0:
-                self.firing = Car.ENUM_NOT_FIRING
+        if self.firing:
+            data['hit_car'] = self.line_break.broken()
         self.send(data)
     def send(self, data):
         self.client.send(data)
 
     # takes the data sent by the server
     # which will be processed user input
-    # this is the equivalent of our TeleopInit(), kind of
+    # this is the equivalent of our TeleopPeriodic(), kind of
     # where we run all the motors and everything
     def accept_data(self, data):
         if type(data) == dict:
@@ -63,14 +57,21 @@ class Car:
             if 'id' in data:
                 self.id = data['id']
             if 'health' in data:
-                self.update_health(data['health'])
-            if 'fire' in data:
-                if data['fire'] and  self.firing == Car.ENUM_NOT_FIRING:
-                    self.last_fire_time = time.time()
-                    self.firing = Car.ENUM_FIRING
-                self.line_break.set(self.firing == Car.ENUM_FIRING)
-                print('fire!' if self.firing==Car.ENUM_FIRING else '     ', end='\r')
-                sys.stdout.flush()
+                if data['health'] - self.health < 0:
+                    #car is taking damage, throw sparks
+                    self.spark_motor.set(1)
+                    #control loss sequence
+
+                    self.health = data['health']               
+                    self.log("Current health: %i", self.health)
+            if 'fire' in data and data['fire']:
+                self.firing = data['fire']
+                print('fire!' if self.firing else 'no fire')
+            else:
+                self.firing = False
+            if 'start_fire' in data:
+#                self.laser_sound.stop()
+                self.laser_sound.play()
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
 #                print('speed: %f' % data['speed'])
@@ -83,10 +84,6 @@ class Car:
 
     def update_health(self, delta):
         self.health += delta
-        self.log("Current health: %i", self.health)
         self.send({'health': self.health})
-        if delta < 0:
-            #car is taking damage, throw sparks
-            self.spark_motor.set(1)
-            #control loss sequence
+
 
