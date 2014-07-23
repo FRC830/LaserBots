@@ -1,45 +1,33 @@
 import RPi.GPIO as gpio
 gpio.setmode(gpio.BOARD)
 
+import wiringpi2 as wp
+wp.wiringPiSetupPhys()
+
 import os
 if os.geteuid() != 0:
     print('WARNING: Not root')
 
-# hopefully this will run on the Pi and control victors and Servos
-class Victor(object):
-    def __init__(self, pin = 12, freq = 100):
-        self.pin = pin
-        self.freq = freq
-        gpio.setup(self.pin, gpio.OUT)
-        
-        self.victor = gpio.PWM(self.pin, self.freq)
-        self.duty_cycle = 0
-        self.victor.start(self.duty_cycle)
-        
-    def set_duty_cycle(self, dc):
-        self.duty_cycle = dc
-        self.victor.ChangeDutyCycle(dc)
 
-    def get_duty_cycle(self):
-        return self.duty_cycle
+# controls a victor
+# must use the hardware pwm on physical pin 12
+class Victor(object):
+    def __init__(self, freq = 100):
+        self.freq = freq
+        wp.pinMode(12, 2) #set pin 12 to pwm mode
+        wp.pwmSetRange(4000) #range can go up to 4096, 4000 is good because it's large and a multiple of 100
+        clock = 19.2e6 / (4000 * freq) #set the divisor so the frequency comes out right
+        wp.pwmSetClock(clock)
 
     def set_speed(self, speed):
         if speed > 1.0:
             speed = 1.0
         if speed < -1.0:
             speed = -1.0
-
-        if speed > -0.1 and speed < 0.1:
-            #zero the value
-            self.set_duty_cycle(0)
-        else:
-            self.set_duty_cycle((self.freq/100.0)*(-7.5*speed + 13.9))
-        #0 ->13.9
-        #-1->20
-        #1 ->5
-        #y=mx+b
-        #b=13.9
-        #m = 15/2 = 7.5
+        # this results in speeds from 500 (fastest allowed forward)
+        # to 700 (fastest allowed reverse)
+        duty_cycle = 600 - (100 * speed)
+            
 
 class Servo(object):
     def __init__(self, pin = 11):
@@ -69,28 +57,28 @@ class Spike(object):
         """pin1 = white/signal | pin2 = red/power"""
         self.pin1 = pin1
         self.pin2 = pin2
-        gpio.setup(self.pin1 , gpio.OUT)
-        gpio.setup(self.pin2 , gpio.OUT)
+        wp.pinMode(self.pin1, 1) # output
+        wp.pinMode(self.pin2, 1)
     def run_fwd(self):
-        #run spike in one direction "forward"
-        gpio.output(self.pin1, True)
-        gpio.output(self.pin2, False)
+        #run spike in one direction "forward"\
+        wp.digitalWrite(self.pin1, 1)
+        wp.digitalWrite(self.pin2, 0)
     def run_bwd(self):
         #run spike in other direction
-        gpio.output(self.pin1, False)
-        gpio.output(self.pin2, True)
+        wp.digitalWrite(self.pin1, 0)
+        wp.digitalWrite(self.pin2, 1)
     def stop(self):
         #stop spike output
-        gpio.output(self.pin1, False)
-        gpio.output(self.pin2, False)
+        wp.digitalWrite(self.pin1, 0)
+        wp.digitalWrite(self.pin2, 0)
 
 class Transistor(object):
     """basic transistor"""
     def __init__(self, pin):
         self.pin = pin
-        gpio.setup(self.pin, gpio.OUT)
+        wp.pinMode(self.pin, 1) # output
     def set(self, val):
-        gpio.output(self.pin, bool(val))
+        wp.digitalWrite(self.pin, val)
 
 
 class LineBreak(object):
@@ -110,3 +98,4 @@ class LineBreak(object):
 
 def cleanup():
     gpio.cleanup()
+    wp.pinMode(12, 0) # set to input

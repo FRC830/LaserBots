@@ -74,7 +74,7 @@ class Car:
                 self.laser_sound.play()
             if 'speed' in data:
                 self.drive_motor.set_speed(data['speed'])
-#                print('speed: %f' % data['speed'])
+                print('speed: %f' % data['speed'])
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
