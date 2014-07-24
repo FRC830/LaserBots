@@ -29,7 +29,7 @@ class Car:
         self.laser_sound = pg.mixer.Sound('laser.wav')
         
         self.drive_motor = Victor()#has to be pin 12
-        self.turn_motor = Servo()#pin 11
+        self.servo = Servo()#pin 11
         self.spark_motor = Transistor(13)#pin 13
         self.line_break = LineBreak() #input pin 16, transistor pin 18
 
@@ -85,11 +85,7 @@ class Car:
                 dc = self.drive_motor.set_speed(data['speed'])
 #                print('duty cycle: %f' % dc)
             if 'turn' in data:
-                turn = data['turn']
-                #change joystick -1 -> 1 into servo 0 -> 180
-                turn = 90 * (turn+1)
-                self.turn_motor.set_angle(turn)
-#                print('turn: %f' % turn)
+                self.servo.set(data['turn'])
             if 'color' in data:
                 color = data['color']
                 self.red_led.set(color & RED)

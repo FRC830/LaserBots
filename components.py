@@ -1,6 +1,3 @@
-import RPi.GPIO as gpio
-gpio.setmode(gpio.BOARD)
-
 import wiringpi2 as wp
 wp.wiringPiSetupPhys()
 
@@ -37,24 +34,19 @@ class Victor(object):
 	wp.pwmWrite(12, int(duty_cycle)) # this also wants an int
         return duty_cycle    
 
+# always pin 11, can be others in theory
+# based on ServoBlaster
 class Servo(object):
-    def __init__(self, pin = 11):
-        self.pin = pin
-        wp.softPwmCreate(self.pin, 0, 200) # range of 200 gives freq of 50Hz
-        wp.softPwmWrite(self.pin, self.angle_to_dc(90))#starting duty cycle
-    def set_angle(self, angle):
-        """sets duty cycle based on an angle"""
-        if angle>180:
-		angle = 180
-	if angle<0:
-		angle = 0
-	self.angle = angle
-        pulse = self.angle_to_dc(self.angle)
-        wp.softPwmWrite(self.pin, pulse)
-    def angle_to_dc(self, angle):
-        """compute the duty cycle to give a certain angle"""
-        # this duty cycle is actually out of 200
-        return -0.09777777777 * angle + 11
+    def __init__(self):
+        os.system("echo 1=50% > /dev/servoblaster")
+    def set(self, val):
+        """sets duty cycle based on a value from -1.0 to 1.0"""
+        percent = int((val * 50) + 50)
+        if percent>100:
+		percent = 100
+	if percent<0:
+		percent = 0
+	os.system("echo 1=%d%% > /dev/servoblaster" % percent)
 
 class Spike(object):
     def __init__(self, pin1=13, pin2=15):
