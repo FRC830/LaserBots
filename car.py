@@ -26,7 +26,7 @@ class Car:
         self.send({'init': True, 'type': 'car'})
 
         pg.init()
-        self.laser_sound = pg.mixer.Sound("laser.wav")
+        self.laser_sound = pg.mixer.Sound('laser.wav')
         
         self.drive_motor = Victor()#has to be pin 12
         self.turn_motor = Servo()#pin 11
@@ -82,8 +82,8 @@ class Car:
 #                self.laser_sound.stop()
                 self.laser_sound.play()
             if 'speed' in data:
-                dc = self.drive_motor.set_speed(-data['speed'])
-                print('duty cycle: %f' % dc)
+                dc = self.drive_motor.set_speed(data['speed'])
+#                print('duty cycle: %f' % dc)
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
