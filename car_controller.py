@@ -34,6 +34,15 @@ BUTTON_START = 7
 LEFT_STICK = 8
 RIGHT_STICK = 9
 
+OFF = 0
+RED = 1
+GREEN = 1 << 1
+BLUE = 1 << 2
+YELLOW = RED | GREEN
+CYAN = GREEN | BLUE
+MAGENTA = RED | BLUE
+WHITE = RED | GREEN | BLUE
+
 
 class CarController:
     #these constants are seconds it takes to go from zero to full speed
@@ -167,6 +176,7 @@ class CarController:
                     self.firing = False
 
             print("%f %f" % (data['speed'], data['turn']))
+            data['color'] = WHITE
         else:
             #no joystick detected, so give reasonable "do nothing" values
             data['speed'] = 0.0

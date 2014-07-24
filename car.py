@@ -11,6 +11,10 @@ import random, sys, time
 import pygame as pg
 from components import Victor, Servo, Transistor, LineBreak
 
+RED = 1
+GREEN = 1 << 1
+BLUE = 1 << 2
+
 class Car:
     def __init__(self, client):
         self.client = client
@@ -24,10 +28,15 @@ class Car:
         pg.init()
         self.laser_sound = pg.mixer.Sound("laser.wav")
         
-        self.drive_motor = Victor()#pin 12
+        self.drive_motor = Victor()#has to be pin 12
         self.turn_motor = Servo()#pin 11
         self.spark_motor = Transistor(13)#pin 13
         self.line_break = LineBreak() #input pin 16, transistor pin 18
+
+        self.red_led = Transistor(3) # pin TBD
+        self.green_led = Transistor(5) # pin TBD
+        self.blue_led = Transistor(7) # pin TBD
+        
     def log(self, msg, *args):
         print(('[Car %i] ' % self.id) + (msg % args))
 
@@ -73,14 +82,19 @@ class Car:
 #                self.laser_sound.stop()
                 self.laser_sound.play()
             if 'speed' in data:
-                self.drive_motor.set_speed(data['speed'])
-                print('speed: %f' % data['speed'])
+                dc = self.drive_motor.set_speed(data['speed'])
+                print('duty cycle: %f' % dc)
             if 'turn' in data:
                 turn = data['turn']
                 #change joystick -1 -> 1 into servo 0 -> 180
                 turn = 90 * (turn+1)
                 self.turn_motor.set_angle(turn)
 #                print('turn: %f' % turn)
+            if 'color' in data:
+                color = data['color']
+                self.red_led.set(color & RED)
+                self.green_led.set((color & GREEN) >> 1)
+                self.blue_led.set((color & BLUE) >> 2)
 
     def update_health(self, delta):
         self.health += delta
