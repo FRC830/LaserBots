@@ -12,12 +12,14 @@ if os.geteuid() != 0:
 # controls a victor
 # must use the hardware pwm on physical pin 12
 class Victor(object):
-    def __init__(self, freq = 100):
+    def __init__(self, freq = 100.0):
         self.freq = freq
         wp.pinMode(12, 2) #set pin 12 to pwm mode
         wp.pwmSetRange(4000) #range can go up to 4096, 4000 is good because it's large and a multiple of 100
-        clock = 19.2e6 / (4000 * freq) #set the divisor so the frequency comes out right
-        wp.pwmSetClock(clock)
+        clock = 19.2e6 / (4000.0 * freq) #set the divisor so the frequency comes out right
+        wp.pwmSetClock(int(clock)) #this function needs an int
+	wp.pwmSetMode(0) # necessary or else it's in a weird mode where nothing works
+	wp.pwmWrite(12, 0) # stop for safety
 
     def set_speed(self, speed):
         if speed > 1.0:
@@ -27,7 +29,8 @@ class Victor(object):
         # this results in speeds from 500 (fastest allowed forward)
         # to 700 (fastest allowed reverse)
         duty_cycle = 600 - (100 * speed)
-            
+	wp.pwmWrite(12, int(duty_cycle)) # this also wants an int
+        return duty_cycle    
 
 class Servo(object):
     def __init__(self, pin = 11):
