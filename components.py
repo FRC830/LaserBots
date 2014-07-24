@@ -40,11 +40,8 @@ class Victor(object):
 class Servo(object):
     def __init__(self, pin = 11):
         self.pin = pin
-        wp.softPwmCreat
-        
-        gpio.setup(pin , gpio.OUT)
-        self.servo = gpio.PWM(self.pin, 50)
-        self.servo.start(self.angle_to_dc(90))#starting duty cycle
+        wp.softPwmCreate(self.pin, 0, 200) # range of 200 gives freq of 50Hz
+        wp.softPwmWrite(self.pin, self.angle_to_dc(90))#starting duty cycle
     def set_angle(self, angle):
         """sets duty cycle based on an angle"""
         if angle>180:
@@ -53,13 +50,11 @@ class Servo(object):
 		angle = 0
 	self.angle = angle
         pulse = self.angle_to_dc(self.angle)
-        self.set_duty_cycle(pulse)
+        wp.softPwmWrite(self.pin, pulse)
     def angle_to_dc(self, angle):
         """compute the duty cycle to give a certain angle"""
-        return -0.0488888888888888 * angle + 11
-    def set_duty_cycle(self, dc):
-        """for testing/internal use only"""
-        self.servo.ChangeDutyCycle(dc)
+        # this duty cycle is actually out of 200
+        return -0.09777777777 * angle + 11
 
 class Spike(object):
     def __init__(self, pin1=13, pin2=15):
