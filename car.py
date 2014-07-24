@@ -82,7 +82,7 @@ class Car:
 #                self.laser_sound.stop()
                 self.laser_sound.play()
             if 'speed' in data:
-                dc = self.drive_motor.set_speed(data['speed'])
+                dc = self.drive_motor.set_speed(-data['speed'])
                 print('duty cycle: %f' % dc)
             if 'turn' in data:
                 turn = data['turn']

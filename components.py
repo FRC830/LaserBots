@@ -8,13 +8,18 @@ import os
 if os.geteuid() != 0:
     print('WARNING: Not root')
 
+INPUT = 0
+OUTPUT = 1
+PWM = 2
+PUD_DOWN = 1
+PUD_UP = 2
 
 # controls a victor
 # must use the hardware pwm on physical pin 12
 class Victor(object):
     def __init__(self, freq = 100.0):
         self.freq = freq
-        wp.pinMode(12, 2) #set pin 12 to pwm mode
+        wp.pinMode(12, PWM)
         wp.pwmSetRange(4000) #range can go up to 4096, 4000 is good because it's large and a multiple of 100
         clock = 19.2e6 / (4000.0 * freq) #set the divisor so the frequency comes out right
         wp.pwmSetClock(int(clock)) #this function needs an int
@@ -34,9 +39,10 @@ class Victor(object):
 
 class Servo(object):
     def __init__(self, pin = 11):
-        gpio.setup(pin , gpio.OUT)
         self.pin = pin
+        wp.softPwmCreat
         
+        gpio.setup(pin , gpio.OUT)
         self.servo = gpio.PWM(self.pin, 50)
         self.servo.start(self.angle_to_dc(90))#starting duty cycle
     def set_angle(self, angle):
@@ -60,8 +66,8 @@ class Spike(object):
         """pin1 = white/signal | pin2 = red/power"""
         self.pin1 = pin1
         self.pin2 = pin2
-        wp.pinMode(self.pin1, 1) # output
-        wp.pinMode(self.pin2, 1)
+        wp.pinMode(self.pin1, OUTPUT)
+        wp.pinMode(self.pin2, OUTPUT)
     def run_fwd(self):
         #run spike in one direction "forward"\
         wp.digitalWrite(self.pin1, 1)
@@ -90,13 +96,14 @@ class LineBreak(object):
     def __init__(self, input_pin = 16, control_pin = 18):
         """default to digital input on pin 16 (GPIO pin 23)"""
         self.pin = input_pin
-        gpio.setup(self.pin, gpio.IN, pull_up_down = gpio.PUD_DOWN)
+        wp.pinMode(self.pin, INPUT)
+        wp.pullUpDnControl(self.pin, PUD_DOWN)
         self.transistor = Transistor(control_pin)
     def set(self, val):
         self.transistor.set(val)
     def broken(self):
         #returns true if the line is broken (probably)
-        return gpio.input(self.pin)
+        return wp.digitalRead(self.pin)
 
 
 def cleanup():
