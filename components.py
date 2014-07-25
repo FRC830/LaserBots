@@ -50,7 +50,6 @@ class Servo(object):
 		percent = 100
 	if percent<0:
 		percent = 0
-	print(percent)
 	os.system("echo P1-%d=%d%% > /dev/servoblaster" % (self.pin, percent))
 
 class Spike(object):

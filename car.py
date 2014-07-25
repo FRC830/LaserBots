@@ -9,7 +9,7 @@ from __future__ import print_function
 
 import random, sys, time
 import pygame as pg
-from components import Victor, Servo, Transistor, LineBreak, clean_up
+from components import Victor, Servo, Transistor, LineBreak, cleanup
 
 RED = 1
 GREEN = 1 << 1
@@ -87,7 +87,7 @@ class Car:
 #                print('duty cycle: %f' % dc)
             if 'turn' in data:
 		turn = -data['turn']
-		print(turn)
+#		print(turn)
                 self.servo.set(turn)
             if 'color' in data:
                 color = data['color']
