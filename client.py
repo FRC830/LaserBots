@@ -38,39 +38,36 @@ class Client(comm.Client):
     def on_disconnect(self):
         print('Disconnected.')
 
-try:
-    connected = False
-    port_connected = PORTS[0]
-    while not connected:
-        for port in range(PORTS[0], PORTS[1] + 1):
+connected = False
+port_connected = PORTS[0]
+while not connected:
+    for port in range(PORTS[0], PORTS[1] + 1):
+        try:
+            print('- Trying %s:%i' % (SERVER_IP, port))
+            client = Client((SERVER_IP, port))
+            connected = True
+            port_connected = port
+            break
+        except socket.error as e:
+            print('- Connection failed: %s' % e)
+
+    if not connected:
+        print('Could not find server.')
+        print('Trying again in 10 seconds...')
+        time.sleep(10)
+
+while True:    
+    try:
+        client.listen_forever()
+    except socket.error as e:
+        print('- Connection lost: %s' %e)
+        connected = False
+        while not connected:
             try:
-                print('- Trying %s:%i' % (SERVER_IP, port))
-                client = Client((SERVER_IP, port))
+                print('- Trying %s:%i' % (SERVER_IP, port_connected))
+                client = Client((SERVER_IP, port_connected))
                 connected = True
-                port_connected = port
                 break
             except socket.error as e:
                 print('- Connection failed: %s' % e)
-
-        if not connected:
-            print('Could not find server.')
-            print('Trying again in 10 seconds...')
-            time.sleep(10)
-
-    while True:    
-        try:
-            client.listen_forever()
-        except socket.error as e:
-            print('- Connection lost: %s' %e)
-            connected = False
-            while not connected:
-                try:
-                    print('- Trying %s:%i' % (SERVER_IP, port_connected))
-                    client = Client((SERVER_IP, port_connected))
-                    connected = True
-                    break
-                except socket.error as e:
-                    print('- Connection failed: %s' % e)
-                    time.sleep(1)
-finally:
-    components.cleanup()
+                time.sleep(1)
