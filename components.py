@@ -1,4 +1,4 @@
-import wiringpi2 as wp
+import wiringpi2 as wp 
 wp.wiringPiSetupPhys()
 
 import os
@@ -46,6 +46,7 @@ class Servo(object):
 		percent = 100
 	if percent<0:
 		percent = 0
+	print(percent)
 	os.system("echo 1=%d%% > /dev/servoblaster" % percent)
 
 class Spike(object):

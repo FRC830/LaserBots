@@ -85,7 +85,9 @@ class Car:
                 dc = self.drive_motor.set_speed(data['speed'])
 #                print('duty cycle: %f' % dc)
             if 'turn' in data:
-                self.servo.set(data['turn'])
+		turn = -data['turn']
+		print(turn)
+                self.servo.set(turn)
             if 'color' in data:
                 color = data['color']
                 self.red_led.set(color & RED)
