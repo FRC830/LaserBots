@@ -9,7 +9,7 @@ from __future__ import print_function
 
 import random, sys, time
 import pygame as pg
-from components import Victor, Servo, Transistor, LineBreak
+from components import Victor, Servo, Transistor, LineBreak, clean_up
 
 RED = 1
 GREEN = 1 << 1

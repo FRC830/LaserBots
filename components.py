@@ -11,11 +11,14 @@ PWM = 2
 PUD_DOWN = 1
 PUD_UP = 2
 
+output_pins = []
+
 # controls a victor
 # must use the hardware pwm on physical pin 12
 class Victor(object):
     def __init__(self, freq = 100.0):
         self.freq = freq
+        output_pins.append(12)
         wp.pinMode(12, PWM)
         wp.pwmSetRange(4000) #range can go up to 4096, 4000 is good because it's large and a multiple of 100
         clock = 19.2e6 / (4000.0 * freq) #set the divisor so the frequency comes out right
@@ -30,15 +33,16 @@ class Victor(object):
             speed = -1.0
         # this results in speeds from 500 (fastest allowed forward)
         # to 700 (fastest allowed reverse)
+        # the theoretical maxima are 400 forward and 800 reverse
         duty_cycle = 600 - (100 * speed)
 	wp.pwmWrite(12, int(duty_cycle)) # this also wants an int
         return duty_cycle    
 
-# always pin 11, can be others in theory
 # based on ServoBlaster
 class Servo(object):
-    def __init__(self):
-        os.system("echo 1=50% > /dev/servoblaster")
+    def __init__(self, pin=11):
+        self.pin = pin
+        os.system("echo P1-%d=50%% > /dev/servoblaster" % self.pin)
     def set(self, val):
         """sets duty cycle based on a value from -1.0 to 1.0"""
         percent = int((val * 50) + 50)
@@ -47,7 +51,7 @@ class Servo(object):
 	if percent<0:
 		percent = 0
 	print(percent)
-	os.system("echo 1=%d%% > /dev/servoblaster" % percent)
+	os.system("echo P1-%d=%d%% > /dev/servoblaster" % (self.pin, percent))
 
 class Spike(object):
     def __init__(self, pin1=13, pin2=15):
@@ -55,7 +59,9 @@ class Spike(object):
         self.pin1 = pin1
         self.pin2 = pin2
         wp.pinMode(self.pin1, OUTPUT)
+        output_pins.append(self.pin1)
         wp.pinMode(self.pin2, OUTPUT)
+        output_pins.append(self.pin2)
     def run_fwd(self):
         #run spike in one direction "forward"\
         wp.digitalWrite(self.pin1, 1)
@@ -95,5 +101,6 @@ class LineBreak(object):
 
 
 def cleanup():
-    gpio.cleanup()
-    wp.pinMode(12, 0) # set to input
+    # don't leave pins set to output when the program closes
+    for pin in output_pins:
+        wp.pinMode(pin, INPUT)
