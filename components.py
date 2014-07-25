@@ -26,7 +26,7 @@ class Victor(object):
 	wp.pwmSetMode(0) # necessary or else it's in a weird mode where nothing works
 	wp.pwmWrite(12, 0) # stop for safety
 
-    def set_speed(self, speed):
+    def set(self, speed):
         if speed > 1.0:
             speed = 1.0
         if speed < -1.0:
@@ -86,15 +86,12 @@ class Transistor(object):
 class LineBreak(object):
     """a line break sensor"""
     #http://makezine.com/projects/tutorial-raspberry-pi-gpio-pins-and-python/
-    def __init__(self, input_pin = 16, control_pin = 18):
+    def __init__(self, input_pin = 16):
         """default to digital input on pin 16 (GPIO pin 23)"""
         self.pin = input_pin
         wp.pinMode(self.pin, INPUT)
-        wp.pullUpDnControl(self.pin, PUD_DOWN)
-        self.transistor = Transistor(control_pin)
-    def set(self, val):
-        self.transistor.set(val)
-    def broken(self):
+        wp.pullUpDnControl(self.pin, PUD_UP)
+    def get(self):
         #returns true if the line is broken (probably)
         return wp.digitalRead(self.pin)
 
