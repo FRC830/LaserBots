@@ -42,9 +42,6 @@ class Victor(object):
 class Servo(object):
     def __init__(self, pin=11):
         self.pin = pin
-	os.system("cd ~/PiBits/ServoBlaster/user")
-	os.system("sudo ./servod --pcm")
-	os.system("cd ~/LaserBots")
         os.system("echo P1-%d=50%% > /dev/servoblaster" % self.pin)
     def set(self, val):
         """sets duty cycle based on a value from -1.0 to 1.0"""

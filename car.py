@@ -11,10 +11,6 @@ import random, sys, time
 import pygame as pg
 from components import Victor, Servo, Transistor, LineBreak, cleanup
 
-RED = 1
-GREEN = 1 << 1
-BLUE = 1 << 2
-
 class Car:
     def __init__(self, client):
         self.client = client
@@ -46,7 +42,7 @@ class Car:
             return
         data = {}
         if self.firing:
-            data['hit_car'] = self.line_break.broken()
+            data['hit_car'] = self.line_break.get()
         self.send(data)
     def send(self, data):
         self.client.send(data)
@@ -89,7 +85,7 @@ class Car:
 		turn = -data['turn']
 #		print(turn)
                 self.servo.set(turn)
-            if 'spark' in data and data['spark']
+            if 'spark' in data and data['spark']:
                 self.spark_motor.set(1)
             else:
                 self.spark_motor.set(0)
