@@ -37,7 +37,7 @@ class PowerMeter(object):
         self.bg = surf#the surface to draw on
         self.width = 100
         self.height = 20
-        self.power = 0#%
+        self.health = 100#%
         self.x = x
         self.y = y
         #draw border
@@ -45,15 +45,15 @@ class PowerMeter(object):
         #clear space for power
         pygame.draw.rect(self.bg, (255,255,255), pygame.Rect(self.x,self.y,self.width,self.height))
     def update(self):
-        #this is the power level
-        pygame.draw.rect(self.bg, (0,0,255), pygame.Rect(self.x,self.y,self.power,self.height))
-        if self.power < 100:
-            self.power += 1
-    def fire(self):
-        """put the power to zero, later it will complete some firing action maybe"""
-        if self.power == 100:#only fire if recharged fully
-            self.power=0
-            pygame.draw.rect(self.bg, (255,255,255), pygame.Rect(self.x,self.y,self.width,self.height))
+        #this is the health level
+        color = (0, 0, 0)
+        if self.health < 25:
+            color = (255, 0, 0)
+        elif self.health < 50:
+            color = (255, 128, 0) #orange
+        else:
+            color = (0, 255, 0)
+        pygame.draw.rect(self.bg, color, pygame.Rect(self.x,self.y,self.health,self.height))
 
 class GameTimer(object):
     """Bar that indicates time left in the game"""
@@ -112,11 +112,7 @@ def main():
                 going = False
         for obj in updateables:
             obj.update()
-        #allsprites.update()
-        if pygame.key.get_pressed()[K_w]:
-            meter1.fire()
-        if pygame.key.get_pressed()[K_UP]:
-            meter2.fire()       
+        #allsprites.update()     
         #Draw Everything
         screen.blit(background, (0, 0))
         #allsprites.draw(screen)

@@ -31,7 +31,7 @@ class Car:
         self.drive_motor = Victor()#has to be pin 12
         self.servo = Servo()#pin 11
         self.spark_motor = Transistor(13)#pin 13
-        self.line_break = LineBreak() #input pin 16, transistor pin 18
+        self.line_break = LineBreak() #input pin 16
 
         self.red_led = Transistor(3) # pin TBD
         self.green_led = Transistor(5) # pin TBD
@@ -89,11 +89,15 @@ class Car:
 		turn = -data['turn']
 #		print(turn)
                 self.servo.set(turn)
+            if 'spark' in data and data['spark']
+                self.spark_motor.set(1)
+            else:
+                self.spark_motor.set(0)
             if 'color' in data:
                 color = data['color']
-                self.red_led.set(color & RED)
-                self.green_led.set((color & GREEN) >> 1)
-                self.blue_led.set((color & BLUE) >> 2)
+                self.red_led.set(color[0])
+                self.green_led.set(color[1])
+                self.blue_led.set(color[2])
 
     def update_health(self, delta):
         self.health += delta
